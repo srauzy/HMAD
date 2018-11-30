@@ -1,0 +1,5 @@
+landmark	coefx	coefy
+P21	0	-1
+P22	0	-1
+P23	0	-1
+P24	0	-1
