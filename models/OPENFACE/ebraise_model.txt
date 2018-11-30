@@ -1,0 +1,11 @@
+landmark	coefx	coefy
+P18	0	1
+P19	0	1
+P20	0	1
+P21	0	1
+P22	0	1
+P23	0	1
+P24	0	1
+P25	0	1
+P26	0	1
+P27	0	1
