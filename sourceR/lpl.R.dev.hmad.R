@@ -1,4 +1,4 @@
-## R code for computing head model and residuals motions from Intrace software output 
+## R code for computing head model and residuals motions, part of the HMAD project
 ## author : S. Rauzy, LPL
 ## date : 27/02/2017
 
@@ -421,12 +421,18 @@ fileExists <- function(directory, filename) {
 ##
 printProjectNames <- function() {
 
-	listfiles <- list.files("projects");
-	cat(paste("List of existing projects :\n")); 
-	for (i in c(1:length(listfiles))) {
-		cat(paste("Project", i, ":", listfiles[i], "\n")); 
+	if (!file.exists("projects")) {
+		cat("No project found!\n");
+		cat("Please use the command 'lpl.R.dev.hmad.createNewProject(TRACKING_SOFTWARE, PROJECT_NAME);' to create a project...\n");
+	} else {	
+		listfiles <- list.files("projects");
+	
+		cat(paste("List of existing projects :\n")); 
+		for (i in c(1:length(listfiles))) {
+				cat(paste("Project", i, ":", listfiles[i], "\n")); 
+		}
+		return (listfiles);
 	}
-	return (listfiles);
 }
 
 ##
@@ -436,6 +442,11 @@ printProjectNames <- function() {
 ## projectname : The project name 
 ##
 lpl.R.dev.hmad.createNewProject <- function(software, projectname) {
+
+		## Create the directory "projects" at the root of the "HMAD" folder if it does not exist
+	if (!file.exists("projects")) {
+		dir.create("projects");	
+	}
 
 	projectdir <- paste("projects/", projectname, sep="");
 	## Convert the string software in uppercases
@@ -508,7 +519,7 @@ getVideoFile <- function(projectname) {
 ## Get and return the list of files (not directory) in the directory "projecdir"
 ## Print a message if there is not a single file 
 ##
-## projectdir : The project directory to be scanned
+## projectname : The project name to be scanned
 ##
 lpl.R.dev.hmad.getListOfFiles <- function(projectname) {
 
