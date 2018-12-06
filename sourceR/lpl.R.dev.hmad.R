@@ -3,7 +3,7 @@
 ## date : 27/02/2017
 
 ##
-## Compute the internal facial movements from the cvs output file
+## Compute the internal facial movements from the csv output file
 ##
 ## software : The software used for extracting the video output 
 ## projectname : The project name
@@ -51,7 +51,7 @@ lpl.R.dev.hmad.createHeadModelAndResiduals <- function(software, projectname) {
 }
 
 ##
-## Create the Action Units table from the cvs output file
+## Create the Action Units table from the csv output file
 ##
 ## software : The software used for extracting the video output 
 ## projectname : The project name
@@ -94,7 +94,34 @@ lpl.R.dev.hmad.createActionUnitTable <- function(software, projectname) {
 }
 
 ##
-## Create the Action Units table from the cvs output file
+## Load the csv output file of the tracking software
+##
+## software : The software used for extracting the video output 
+## projectname : The project name
+##
+## return the data frame containing the csv
+##
+lpl.R.dev.hmad.loadCsvData <- function(software, projectname) {
+
+	projectdir <- paste("projects/", projectname, sep="");
+	## Convert the string software in uppercases
+	software <- toupper(software);
+	## The project directory depending on the software used
+	projectdir <- paste(projectdir, "/", software, sep="");
+
+	## OpenFace output
+	if (software == "OPENFACE") {
+		filename <- paste(projectname, "_ofo.csv", sep="");
+		csvprojectdir <- paste(projectdir, "/processed/", sep="");
+		cat(paste("LOAD CSV FILE", filename, "in directory", csvprojectdir, "...\n"));
+		csv <- lpl.R.dev.openFaceOutputAnalysis.loadOpenFaceSingleFaceOutput(csvprojectdir, filename);
+	}
+
+	return (csv);
+}
+
+##
+## cvs output file
 ##
 ## software : The software used for extracting the video output 
 ## projectname : The project name
