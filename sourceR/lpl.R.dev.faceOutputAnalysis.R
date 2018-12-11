@@ -963,24 +963,24 @@ lpl.R.dev.faceOutputAnalysis.addLabelSFactorOutlier <- function(data, sigma, thr
 }
 
 ##
-## Add a label L to points with large angles with respect to the mean angles of the head
+## Add a label L to points with large angles with respect to the frontal position of the head
 ##
 ## data : The data frame
-## min_pitch_angle : The minimal pitch angle (with respect to the mean pitch of the head)
-## max_pitch_angle : The maximal pitch angle (with respect to the mean pitch of the head)
-## min_yaw_angle : The minimal yaw angle (with respect to the mean yaw of the head)
-## max_yaw_angle : The maximal yaw angle (with respect to the mean yaw of the head)
-## min_roll_angle : The minimal roll angle (with respect to the mean roll of the head)
-## max_roll_angle : The maximal roll angle (with respect to the meanroll of the head)
+## min_pitch_angle : The minimal pitch angle 
+## max_pitch_angle : The maximal pitch angle 
+## min_yaw_angle : The minimal yaw angle 
+## max_yaw_angle : The maximal yaw angle 
+## min_roll_angle : The minimal roll angle 
+## max_roll_angle : The maximal roll angle 
 ##
 ## return the data frame with modified column label
 ##
 lpl.R.dev.faceOutputAnalysis.addLabelForLargeAngle <- function(data, min_pitch_angle, max_pitch_angle, min_yaw_angle, max_yaw_angle, min_roll_angle, max_roll_angle) {
 
 	d <- subset(data, data$label == "Y");
-	mpitch <- mean(d$pitch);
-	myaw <- mean(d$yaw);
-	mroll <- mean(d$roll);
+	mpitch <- 0;
+	myaw <- 0;
+	mroll <- 0;
 
 	for (i in c(1:nrow(data))) {
 		if (data$label[i] == "Y") {

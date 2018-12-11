@@ -77,6 +77,7 @@ lpl.R.dev.openFaceOutputAnalysis.meanHead2DimensionInPixels <- function(software
 ##
 lpl.R.dev.openFaceOutputAnalysis.createHeadModelAndResiduals <- function(projectdir, d) {
 
+	## Form the primary data
 	dd <- lpl.R.dev.openFaceOutputAnalysis.formPrimaryData(projectdir, d);
 
 	cat("Create the head model from the filtered data (data cleaning)...\n");
@@ -279,7 +280,14 @@ lpl.R.dev.openFaceOutputAnalysis.createHeadModel1 <- function(d, dd) {
 	return (dd);
 }
 
-
+##
+## Compute and return the landmark positions 3D vector corrected from the rotation of the head  
+##
+## d : The csv OpenFace output as a data frame containing the pertinent information for our analysis
+## irc : The inverse rotation coefficients (from the pitch, yaw and roll angles) for each line of the d data frame
+##
+## return the 3D vector
+##
 lpl.R.dev.openFaceOutputAnalysis.createRotationCorrected3DVector <- function(d, irc) {
 
 	number_of_points <- 68;
@@ -299,15 +307,14 @@ lpl.R.dev.openFaceOutputAnalysis.createRotationCorrected3DVector <- function(d, 
 
 		ix <- which(colnames(d) == paste("X_", (j-1), sep=""));
 		difx <- d[ ,ix] - d$pose_Tx;
-		
+	
+		## y and z are inverted 	
 		iy <- which(colnames(d) == paste("Y_", (j-1), sep=""));
 		dify <- -d[ ,iy] + d$pose_Ty;
 		
 	       	iz <- which(colnames(d) == paste("Z_", (j-1), sep=""));
 		difz <- -d[ ,iz] + d$pose_Tz;
 
-		##listpointX[[j]] <- round((irc$cxx*difx + irc$cxy*dify + irc$cxz*difz)/dd$S, 4);
-	       	##listpointY[[j]] <- round((irc$cyx*difx + irc$cyy*dify + irc$cyz*difz)/dd$S, 4);	
 		listpointX[[j]] <- round((irc$cxx*difx + irc$cxy*dify + irc$cxz*difz), 4);
 	       	listpointY[[j]] <- round((irc$cyx*difx + irc$cyy*dify + irc$cyz*difz), 4);	
 		listpointZ[[j]] <- round((irc$czx*difx + irc$czy*dify + irc$czz*difz), 4);
@@ -356,8 +363,16 @@ lpl.R.dev.openFaceOutputAnalysis.changeProblematicLine <- function(d) {
 	return (d);
 }
 
+##
+## Compute and return the focal length parameter (fx, fy) and the optical center of the camera (cx, cy) and the mean depth mZ in mm  
+##
+## d : The csv OpenFace output as a data frame containing the pertinent information for our analysis
+##
+## return the quintet (fx, fy, cx, cy, mZ)  
+##
 lpl.R.dev.openFaceOutputAnalysis.computeFocalLengthAndOpticalCenter <- function(d) {
 
+	## The focal length and optical center are obtained by a linear regression on the coordinates in mm
 	v_0 <- d$X_0/d$Z_0;
 	lm <- lm(d$x_0 ~ v_0);
 	cx <- round(lm$coefficients[1], 4);
@@ -383,6 +398,16 @@ lpl.R.dev.openFaceOutputAnalysis.computeFocalLengthAndOpticalCenter <- function(
 	return (dd);
 }
 
+##
+## Compute and return the camera projection vector for x and y 
+##
+## dfloc : the quintet composed of the focal length parameter (fx, fy) and the optical center of the camera (cx, cy) and the mean depth mZ in mm 
+## X : the X component of csv file (in mm)
+## Y : the Y component of csv file (in mm)
+## Z : the Z component of csv file (in mm)
+##
+## return the camera projection vector for x and y 
+##
 lpl.R.dev.openFaceOutputAnalysis.computeCameraProjection <- function(dfloc, X, Y, Z) {
 
 	lcm <- vector(mode="list", length=2);
@@ -403,6 +428,14 @@ lpl.R.dev.openFaceOutputAnalysis.convertInPixel <- function(dfloc, values, axis)
 	return (nv);
 }
 
+##
+## Form the primary data, all the parameters exepts residuals (wich need head model)
+##
+## projectdir : The directory of the project where the cvs output file is
+## d : The csv OpenFace output as a data frame containing the pertinent information for our analysis
+##
+## return the data frame containing ladnmarks position in pixels, angles, ...
+##
 lpl.R.dev.openFaceOutputAnalysis.formPrimaryData <- function(projectdir, d) {
 
 	line_number <- nrow(d);
@@ -437,15 +470,18 @@ lpl.R.dev.openFaceOutputAnalysis.formPrimaryData <- function(projectdir, d) {
 	yaw <- round(as.numeric(as.character(d$pose_Ry/alpha)), 4);
 	roll <- round(as.numeric(as.character(d$pose_Rz/alpha)), 4);
 
+	## Compute the focal length and optical center of the camera by linear regression
 	dfloc <- lpl.R.dev.openFaceOutputAnalysis.computeFocalLengthAndOpticalCenter(d);
+	## Compute the camera projection for the mean head movement
 	mcp <- lpl.R.dev.openFaceOutputAnalysis.computeCameraProjection(dfloc, d$pose_Tx, d$pose_Ty, d$pose_Tz);
 
+	## The mean head movement projection in pixels
 	MOx <- round(mcp[[1]], 4);
 	MOy <- round(mcp[[2]], 4);
 
 	dd <- data.frame(frame, time, timem, times, confidence, pitch, yaw, roll, MOx, MOy);
 
-	## Add the vM.. variables
+	## Add the vM.. variables, the landmarks coordinates with respect to the mean head movement
 	number_of_points <- 68;
 	listpointX <- vector(mode="list", length=number_of_points);
 	listpointY <- vector(mode="list", length=number_of_points);
@@ -488,7 +524,8 @@ lpl.R.dev.openFaceOutputAnalysis.formPrimaryData <- function(projectdir, d) {
 }
 
 ##
-## Create a data frame with the AU (Action Unit) measurements (intensity and detection column) specific to eyebrows 
+## Create and return a data frame with the AU (Action Unit) measurements (intensity and detection column) specific to eyebrows
+##
 ## d : The data frame containing the pertinent information for our analysis
 ##
 lpl.R.dev.openFaceOutputAnalysis.createEyebrowActionUnitTable <- function(d) {
@@ -524,7 +561,8 @@ lpl.R.dev.openFaceOutputAnalysis.createEyebrowActionUnitTable <- function(d) {
 }
 
 ##
-## Create a data frame with the AU (Action Unit) measurements (intensity and detection column) 
+## Create and return a data frame with the AU (Action Unit) measurements (intensity and detection column)
+## 
 ## d : The data frame containing the pertinent information for our analysis
 ##
 lpl.R.dev.openFaceOutputAnalysis.createActionUnitTable <- function(d) {
@@ -640,8 +678,9 @@ lpl.R.dev.openFaceOutputAnalysis.checkData <- function(projectname, d) {
 
 ##
 ## Add a column named label, with various code (N for NA data, S for too large or small face 
-## dimension, P for too large positions for P05, L for too large angles, and Y for times which
+## dimension, P for positions too far away from the camera optical center, L for too large angles, and Y for frame which
 ## will be used to calibrate the head model
+##
 ## data : The data frame
 ##
 lpl.R.dev.openFaceOutputAnalysis.addOpenFaceLabelToCleanData <- function(data) {
@@ -660,8 +699,8 @@ lpl.R.dev.openFaceOutputAnalysis.addOpenFaceLabelToCleanData <- function(data) {
 	d3 <- lpl.R.dev.faceOutputAnalysis.addLabelOutlierHeadPosition(d2, 3);
 	cat(paste("Number of P frames :", sum(d3$label == "P"), "\n"));
 
-	maximal_angle = 15;
-	cat(paste("Annotate with too large or small angle value around the mean (", maximal_angle, "degree) with label L...\n"));
+	maximal_angle = 30;
+	cat(paste("Annotate with too large or small angle value (", maximal_angle, "degree) with label L...\n"));
 	d4 <- lpl.R.dev.faceOutputAnalysis.addLabelForLargeAngle(d3, -maximal_angle, maximal_angle, -maximal_angle, maximal_angle, -maximal_angle, maximal_angle);	
 	cat(paste("Number of L frames :", sum(d4$label == "L"), "\n"));
 
