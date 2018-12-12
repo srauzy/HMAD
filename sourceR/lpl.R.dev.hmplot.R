@@ -2,139 +2,50 @@
 ## author : S. Rauzy, LPL
 ## date : 27/02/2017
 
+## 
+## Return a plot X-Y of the head model
+##
+## projectname : The project name
+##
+## return the plot object
 lpl.R.dev.hmplot.plotOpenFaceHeadModel <- function(projectname) {
 
 	return (lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlag(projectname, 0, 0, 0, FALSE));
 }
 
-
-plotHeadModel <- function(projectname) {
-
-	return (plotHeadModelWithAngleAndFlag(projectname, 0, 0, 0, FALSE));
-}
-
-plotHeadModelWithAngle <- function(projectname, pitch, roll, yaw) {
-
-	return (plotHeadModelWithAngleAndFlag(projectname, pitch, roll, yaw, TRUE));
-}
-
-plotHeadModelWithAngleAndFlag <- function(projectname, pitch, roll, yaw, angleflag) {
-
-	FOLDER_PROJECT <- paste("projects", projectname, sep="/");
-	FOLDER_MODEL <- paste(FOLDER_PROJECT, "model", sep="/");
-
-	dhmt <- loadInternalDataFrame(FOLDER_MODEL, "dhmt.txt");
-	index <- numeric(nrow(dhmt));
-	jc <- 1;
-	 for (j in c(1:(length(index)+1))) {
-		if (j != 5) {
-			index[jc] <- j;
-			jc <- jc + 1;
-		}
-	}
-	df <- data.frame(dhmt, index);
-
-	dff <- data.frame("P05", 0, 0, 0, 0, 0, 0, 5);
-	names(dff) <- c("point", "X", "seX", "Y", "seY", "Z", "seZ", "index");
-	rownames(dff) <- NULL;
-	df <- rbind(df, dff);
-	
-	dfr <- rotate(df, pitch, roll, yaw);
-
-	xmin <- min(dfr$X);
-	xmax <- max(dfr$X);	
-	ymin <- min(dfr$Y);
-	ymax <- max(dfr$Y);
-	xlength <- xmax-xmin;
-	ylength <- ymax-ymin;
-
-	qp <- qplot(data=dfr, x=X, y=Y, label=index) + geom_point(size=I(7), shape=I(19), colour="blue");
-	qp <- qp + geom_text(size=I(4), vjust = I(0), nudge_y = I(-1.2), colour="white");
-	qp <- qp + scale_x_continuous(limits = c(xmin - xlength/10, xmax + xlength/10));
-	yminshift <- ylength/10;
-	if (angleflag) {
-		textangle <- paste("pitch=", pitch, "°, roll=", roll, "°, yaw=", yaw, "°", sep="");
-        	qp <- qp +  annotate("text", label = textangle, x = xmin - xlength/10, y = ymin - 1.8*ylength/10, hjust = 0);
-		yminshift <- 2*ylength/10;
-	}	
-       	qp <- qp + scale_y_continuous(limits = c(ymin - yminshift, ymax + ylength/10)) + coord_fixed(ratio = 1, expand = TRUE);
-        if (is.null(projectname)) {
-		
-	} else {
-		##qp <- qp + ggtitle("Head model");	
-		##qp <- qp + ggtitle(paste(projectname, "head model"));
-		qp <- qp + ylab("Y (pixels)");
-		qp <- qp + xlab("X (pixels)");
-		qp <- qp + theme(text = element_text(size=8));
-	}
-
-	return (qp);
-
-}
-
+##
+## Plot and return the head model in the X-Y plane with a given angle
+##
+## projectname : The project name
+## pitchangle: The pitch angle of rotation
+## rollangle: The roll angle of rotation
+## yawangle: The yaw angle of rotation
+## angleflag: put to true to write the angle on the plot
+##
+## return the plot object
+##
 lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlag <- function(projectname, pitch, roll, yaw, angleflag) {
 
 	FOLDER_PROJECT <- paste("projects", projectname, sep="/");
 	directory <- paste(FOLDER_PROJECT, "OPENFACE/model", sep="/");
 	filename <- "dhmt.txt";
 
-	return (lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlag1(directory, filename, pitch, roll, yaw, angleflag)); 
+	return (lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlagDF(directory, filename, pitch, roll, yaw, angleflag)); 
 }
 
-plotOpenFaceHeadModelDifferenceWithAngleAndFlag1 <- function(directory, filename, pitch, roll, yaw, angleflag) {
-
-	dhmt <- loadInternalDataFrame(directory, filename);
-	index <- numeric(nrow(dhmt));
-	jc <- 1;
-	 for (j in c(1:(length(index)+1))) {
-		if (j != 28) {
-			index[jc] <- j;
-			jc <- jc + 1;
-		}
-	}
-	df <- data.frame(dhmt, index);
-
-	dff <- data.frame("P28", 0, 0, 0, 0, 0, 0, 28);
-	names(dff) <- c("point", "X", "seX", "Y", "seY", "Z", "seZ", "index");
-	rownames(dff) <- NULL;
-	df <- rbind(df, dff);
-	
-	##dfr <- rotate(df, pitch, roll, yaw);
-	dfr <- df;
-
-	dfr$Y <- dfr$Y - df$Y;
-	xmin <- min(dfr$X);
-	xmax <- max(dfr$X);	
-	ymin <- min(dfr$Y);
-	ymax <- max(dfr$Y);
-	xlength <- xmax-xmin;
-	ylength <- ymax-ymin;
-
-	qp <- qplot(data=dfr, x=X, y=Y, label=index) + geom_point(size=I(5), shape=I(19), colour="blue");
-	qp <- qp + geom_text(size=I(3), vjust = I(0), nudge_y = I(-1.2), colour="white");
-	qp <- qp + scale_x_continuous(limits = c(xmin - xlength/10, xmax + xlength/10));
-	yminshift <- ylength/10;
-	if (angleflag) {
-		textangle <- paste("pitch=", pitch, "°, roll=", roll, "°, yaw=", yaw, "°", sep="");
-        	qp <- qp +  annotate("text", label = textangle, x = xmin - xlength/10, y = ymin - 1.8*ylength/10, hjust = 0);
-		yminshift <- 2*ylength/10;
-	}	
-       	qp <- qp + scale_y_continuous(limits = c(ymin - yminshift, ymax + ylength/10)) + coord_fixed(ratio = 1, expand = TRUE);
-        if (is.null(projectname)) {
-		
-	} else {
-		##qp <- qp + ggtitle("Head model");	
-		##qp <- qp + ggtitle(paste(projectname, "head model"));
-		qp <- qp + ylab("Y (pixels)");
-		qp <- qp + xlab("X (pixels)");
-		qp <- qp + theme(text = element_text(size=8));
-	}
-
-	return (qp);
-
-}
-
-lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlag1 <- function(directory, filename, pitch, roll, yaw, angleflag) {
+##
+## Plot and return the head model in the X-Y plane with a given angle
+##
+## directory : The directory of the head model file
+## filename : The file of the head model 
+## pitchangle: The pitch angle of rotation
+## rollangle: The roll angle of rotation
+## yawangle: The yaw angle of rotation
+## angleflag: put to true to write the angle on the plot
+##
+## return the plot object
+##
+lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlagDF <- function(directory, filename, pitch, roll, yaw, angleflag) {
 
 	dhmt <- loadInternalDataFrame(directory, filename);
 	index <- numeric(nrow(dhmt));
@@ -160,8 +71,7 @@ lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlag1 <- function(directory, f
 		df <- data.frame(dhmt, index);
 	}
 	
-	##dfr <- rotate(df, pitch, roll, yaw);
-	dfr <- df;
+	dfr <- rotate(df, pitch, roll, yaw);
 
 	xmin <- min(dfr$X);
 	xmax <- max(dfr$X);	
@@ -182,13 +92,49 @@ lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlag1 <- function(directory, f
        	qp <- qp + scale_y_continuous(limits = c(ymin - yminshift, ymax + ylength/10)) + coord_fixed(ratio = 1, expand = TRUE);
 		##qp <- qp + ggtitle("Head model");	
 		##qp <- qp + ggtitle(paste(projectname, "head model"));
-		qp <- qp + ylab("Y (pixels)");
-		qp <- qp + xlab("X (pixels)");
+		qp <- qp + ylab("Y (in millimeters)");
+		qp <- qp + xlab("X (in millimeters)");
 		qp <- qp + theme(text = element_text(size=8));
 
 	return (qp);
-
 }
+
+##
+## Rotate the data 
+##
+## data : The data with the genuine 3D coordinates X, Y and Z
+## pitchangle: The pitch angle of rotation
+## rollangle: The roll angle of rotation
+## yawangle: The yaw angle of rotation
+##
+## return a data frame with the new 3D coordinates
+##
+rotate <- function(data, pitchangle, rollangle, yawangle) {
+
+	pitch <- numeric(1);
+	roll <- numeric(1);
+	yaw <- numeric(1);
+
+	pitch[1] <- pitchangle;
+	roll[1] <- rollangle;
+	yaw[1] <-yawangle;
+
+	dangle <- data.frame(pitch, roll, yaw);
+	drc <- lpl.R.dev.faceOutputAnalysis.createRotationCoefficientsTable(dangle, "direct", "XYZ");
+
+	X <- numeric(nrow(data));
+	Y <- numeric(nrow(data));
+	index <- numeric(nrow(data));
+
+	X <- drc$cxx*data$X + drc$cxy*data$Y + drc$cxz*data$Z;
+	Y <- drc$cyx*data$X + drc$cyy*data$Y + drc$cyz*data$Z;
+	index  <- data$index;
+
+	dd <- data.frame(index, X, Y);
+
+	return (dd);
+}
+
 
 plotSupportQuality <- function(projectname, ebmtype) {
 
@@ -232,42 +178,47 @@ plotHistogramPredictionObservation <- function(projectname, ebmtype) {
 	return(ggplot(aes(x = quality, y = sdwc, color = duration, group = duration), data = sdwcq) +  geom_point() + geom_line());
 }
 
+##
+## Plot and return the head model in the X-Y plane with a given angle
+##
+## projectname : The project name
+## pitchangle: The pitch angle of rotation
+## rollangle: The roll angle of rotation
+## yawangle: The yaw angle of rotation
+## angleflag: put to true to write the angle on the plot
+##
+## return the plot object
+##
+lpl.R.dev.hmplot.plotLandmarkProjectedResidualDispersion <- function(projectname, axis) {
 
+	FOLDER_PROJECT <- paste("projects", projectname, sep="/");
+	directory <- paste(FOLDER_PROJECT, "OPENFACE/model", sep="/");
+	filename <- "rrsdt.txt";
 
-rotate <- function(data, pitchangle, rollangle, yawangle) {
+	rrsdt <- loadInternalDataFrame(directory, filename);
+	if (axis=="y") {
+		values <- rrsdt$sdy;
+	} else {
+		values <- rrsdt$sdx;
+	}
 
-	pitch <- numeric(1);
-	roll <- numeric(1);
-	yaw <- numeric(1);
+	ymax <- max(values);
+	qp <- ggplot(aes(x = landmark, y = values), data = rrsdt) +  geom_point()
+	qp <- qp + scale_y_continuous(limits = c(0, ymax + ymax/10));
+	qp <- qp + ylab(paste("Residuals dispersion on" , axis, "(in millimeters)"));
+	qp <- qp + theme(text = element_text(size=10));
 
-	pitch[1] <- pitchangle;
-	roll[1] <- rollangle;
-	yaw[1] <-yawangle;
-
-	dangle <- data.frame(pitch, roll, yaw);
-	drc <- createRotationCoefficientsTable(dangle, "direct", "XYZ");
-
-	X <- numeric(nrow(data));
-	Y <- numeric(nrow(data));
-	index <- numeric(nrow(data));
-
-	X <- drc$cxx*data$X + drc$cxy*data$Y + drc$cxz*data$Z;
-	Y <- drc$cyx*data$X + drc$cyy*data$Y + drc$cyz*data$Z;
-	index  <- data$index;
-
-	dd <- data.frame(index, X, Y);
-
-	return (dd);
+	return (qp);
 }
 
 plotStandardDispersionResidual <- function(projectname, sdt, axis) {
 
-	sdm <- melt(sdt, c=("point"));
+	sdm <- melt(rrsdt, c=("landmark"));
 	ymax <- max(sdm$value);
 
 	qp <- ggplot(aes(x = point, y = value, color = variable, group = variable), data = sdm) +  geom_point() + geom_line();
 	qp <- qp + scale_y_continuous(limits = c(0, ymax + ymax/10));
-	qp <- qp + ylab(paste("Residuals dispersion on" , axis, "(pixels)"));
+	qp <- qp + ylab(paste("Residuals dispersion on" , axis, "(in millimeters)"));
 	qp <- qp + ggtitle(paste(projectname, "head model"));
 	qp <- qp + theme(text = element_text(size=10));
 

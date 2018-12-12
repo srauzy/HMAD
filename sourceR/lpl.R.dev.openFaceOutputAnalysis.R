@@ -119,6 +119,7 @@ lpl.R.dev.openFaceOutputAnalysis.createHeadModelAndResiduals <- function(project
 ## Create the projected residuals
 ##
 ## data : The data frame containing the S factor value and the angles
+## d : The csv OpenFace output as a data frame containing the pertinent information for our analysis
 ## irc : The inverse rotation coefficients 
 ## dhmt : The direct head model table
 ##
@@ -126,11 +127,14 @@ lpl.R.dev.openFaceOutputAnalysis.createHeadModelAndResiduals <- function(project
 ##
 lpl.R.dev.openFaceOutputAnalysis.addProjectedResidualsEstimate <- function(data, d, irc, dhmt) {
 
+	## 68 landmarks
 	number_of_points <- 68;
 	
+	## Two vectors of values, for projections on x-axis and y-axis
 	listpointX <- vector(mode="list", length=number_of_points);
 	listpointY <- vector(mode="list", length=number_of_points);
 	
+	## The coefficients of the inverse rotation matrix defined for each frame
 	cxx <- irc$cxx;
 	cxy <- irc$cxy;
 	cxz <- irc$cxz;
@@ -143,23 +147,30 @@ lpl.R.dev.openFaceOutputAnalysis.addProjectedResidualsEstimate <- function(data,
 	czy <- irc$czy;
 	czz <- irc$czz;
 	
+	## Loop on the landmarks
 	for (j in c(1:number_of_points)) {
 		
+		## Initialize the two vector for landmark of index j
 		listpointX[[j]] <- numeric(nrow(d));
 		listpointY[[j]] <- numeric(nrow(d));
 
+		## The X and Y coordinates of the landmark
 		ix <- which(colnames(d) == paste("X_", (j-1), sep=""));
 		xobs <- d[ ,ix] - d$pose_Tx;
 		
 		iy <- which(colnames(d) == paste("Y_", (j-1), sep=""));
 		yobs <- -d[ ,iy] + d$pose_Ty;
+		##yobs <- d[ ,iy] - d$pose_Ty;
 	
+		## Transformation 
 		Xobs = (cxx - cxz*czx/czz)*xobs + (cxy - cxz*czy/czz)*yobs;
 		Yobs = (cyx - cyz*czx/czz)*xobs + (cyy - cyz*czy/czz)*yobs;
 
+		## The values of the projected residuals
 		listpointX[[j]] = round(Xobs - dhmt$X[j] + cxz/czz*dhmt$Z[j], 4);
 		listpointY[[j]] = round(Yobs - dhmt$Y[j] + cyz/czz*dhmt$Z[j], 4);
 
+		## Add the two columns
 		if (j == 1) {
 			dd <- data.frame(listpointX[[j]], listpointY[[j]]);
 		} else {
@@ -168,7 +179,7 @@ lpl.R.dev.openFaceOutputAnalysis.addProjectedResidualsEstimate <- function(data,
 		colnames(dd)[ncol(dd)-1] <- paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "x", sep="");
 		colnames(dd)[ncol(dd)] <-paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "y", sep="");
 	}
-
+	## The result
 	dd <- data.frame(data, dd);
 
 	return (dd);
@@ -242,44 +253,6 @@ lpl.R.dev.openFaceOutputAnalysis.estimateDirectXYZ <- function(d3D, i, removeOut
 	return (df);
 }
 
-lpl.R.dev.openFaceOutputAnalysis.createHeadModel1 <- function(d, dd) {
-
-	line_number <- nrow(d);
-
-	dd <- lpl.R.dev.openFaceOutputAnalysis.formPrimaryData(projectname, d);	
-
-	number_of_points <- 68;
-	listpointX <- vector(mode="list", length=number_of_points);
-	listpointY <- vector(mode="list", length=number_of_points);
-	listpointZ <- vector(mode="list", length=number_of_points);
-
-	## Remove the mean X, Y, Z (head model) from the residuals
-	for (j in c(1:number_of_points)) {
-		ix <- which(colnames(dd) == paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "x", sep=""));
-		dd[ , ix] <-  round((dd[ , ix] - dhmt$X[j]), 4);
-		
-		iy <- which(colnames(dd) == paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "y", sep=""));
-		dd[ , iy] <- round((dd[ , iy] - dhmt$Y[j]), 4);
-
-		iz <- which(colnames(dd) == paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "z", sep=""));
-		dd[ , iz] <- round((dd[ , iz] - dhmt$Z[j]), 4);
-		ds <- lpl.R.dev.openFaceOutputAnalysis.filterOnConfidenceLevel(dd, 0.8);
-	}
-	FOLDER_TABLES <- paste(projectdir, "tables", sep="/");
-	if (!file.exists(FOLDER_TABLES)) {
-		dir.create(FOLDER_TABLES);
-	}
-	cat("Save the internal facial movements file in table/itdcomplete.txt ...\n");
-	saveInternalDataFrame(dd, FOLDER_TABLES, "itdcomplete.txt");
-
-	cat("Compute the standard dispersions for each landmarks...\n");
-	ds <- lpl.R.dev.openFaceOutputAnalysis.filterOnConfidenceLevel(dd, 0.8);
-	dfsd <- lpl.R.dev.faceOutputAnalysis.computeProjectedResidualsStandardDispersion(ds);
-	saveInternalDataFrame(dfsd, FOLDER_MODEL, "rrsdt.txt");
-
-	return (dd);
-}
-
 ##
 ## Compute and return the landmark positions 3D vector corrected from the rotation of the head  
 ##
@@ -311,9 +284,11 @@ lpl.R.dev.openFaceOutputAnalysis.createRotationCorrected3DVector <- function(d, 
 		## y and z are inverted 	
 		iy <- which(colnames(d) == paste("Y_", (j-1), sep=""));
 		dify <- -d[ ,iy] + d$pose_Ty;
+		##dify <- d[ ,iy] - d$pose_Ty;
 		
 	       	iz <- which(colnames(d) == paste("Z_", (j-1), sep=""));
 		difz <- -d[ ,iz] + d$pose_Tz;
+		##difz <- d[ ,iz] - d$pose_Tz;
 
 		listpointX[[j]] <- round((irc$cxx*difx + irc$cxy*dify + irc$cxz*difz), 4);
 	       	listpointY[[j]] <- round((irc$cyx*difx + irc$cyy*dify + irc$cyz*difz), 4);	
@@ -429,7 +404,7 @@ lpl.R.dev.openFaceOutputAnalysis.convertInPixel <- function(dfloc, values, axis)
 }
 
 ##
-## Form the primary data, all the parameters exepts residuals (wich need head model)
+## Form the primary data, all the parameters exepts residuals (which need head model)
 ##
 ## projectdir : The directory of the project where the cvs output file is
 ## d : The csv OpenFace output as a data frame containing the pertinent information for our analysis
@@ -467,6 +442,7 @@ lpl.R.dev.openFaceOutputAnalysis.formPrimaryData <- function(projectdir, d) {
 
 	confidence <-  round(as.numeric(as.character(d$confidence)), 4);
 	pitch <- round(as.numeric(as.character(-d$pose_Rx/alpha)), 4);
+	##pitch <- round(as.numeric(as.character(d$pose_Rx/alpha)), 4);
 	yaw <- round(as.numeric(as.character(d$pose_Ry/alpha)), 4);
 	roll <- round(as.numeric(as.character(d$pose_Rz/alpha)), 4);
 
@@ -565,6 +541,8 @@ lpl.R.dev.openFaceOutputAnalysis.createEyebrowActionUnitTable <- function(d) {
 ## 
 ## d : The data frame containing the pertinent information for our analysis
 ##
+## return the AU table
+##
 lpl.R.dev.openFaceOutputAnalysis.createActionUnitTable <- function(d) {
 
 	## Retrieve the list of column indexes of the AU
@@ -572,13 +550,15 @@ lpl.R.dev.openFaceOutputAnalysis.createActionUnitTable <- function(d) {
 	## The number of columns
 	number_of_columns <- length(list_column_indexes_AU);
 
-	j = 1;
-	df <- data.frame(d[, list_column_indexes_AU[j]]);
-	colnames(df)[j] <-  colnames(d)[list_column_indexes_AU[j]];
+	df <- data.frame(d[, 3]);
+	colnames(df)[1] <-  "time";
+	#j = 1;
+	#df <- data.frame(d[, list_column_indexes_AU[j]]);
+	#colnames(df)[j] <-  colnames(d)[list_column_indexes_AU[j]];
 
-	for (j in c(2:number_of_columns)) {
+	for (j in c(1:number_of_columns)) {
 		df <- data.frame(df, d[, list_column_indexes_AU[j]]);
-		colnames(df)[j] <-  colnames(d)[list_column_indexes_AU[j]];
+		colnames(df)[j+1] <-  colnames(d)[list_column_indexes_AU[j]];
 	}
 
 	list_column_indexes_AU_r <- grep('AU.*_r', colnames(d), value = FALSE);
@@ -589,99 +569,14 @@ lpl.R.dev.openFaceOutputAnalysis.createActionUnitTable <- function(d) {
 	return (df);
 }
 
-lpl.R.dev.openFaceOutputAnalysis.checkData <- function(projectname, d) {
-
-	line_number <- nrow(d);
-
-	filename <- paste(projectname, "_ofo.csv", sep="");
-	cat(paste("TREATING CSV FILE", filename, "...\n"));
-	cat(paste("Number of frames :", line_number, ", video duration :", lpl.R.dev.faceOutputAnalysis.stomnsString(line_number/25), "...\n"));
-
-	frame <- numeric(line_number);
-	time <- numeric(line_number);
-	timem <- numeric(line_number);
-	times <- numeric(line_number);
-	confidence <- numeric(line_number);
-	pitch <- numeric(line_number);
-	yaw <- numeric(line_number);
-	roll <- numeric(line_number);
-
-	time <- round(as.numeric(d$timestamp), 4);
-
-	for (i in c(1:line_number)) {
-		frame[i] = i;
-		## time in seconds 
-		timem[i] <-  round(as.numeric(floor(time[i]/60)), 4);
-		## time in minutes and seconds
-		times[i] <- round(as.numeric(time[i] - timem[i]*60), 4);
-	}
-
-	## Degree to radian conversion coefficient
-	alpha = 2*pi/360;
-
-	confidence <-  round(as.numeric(as.character(d$confidence)), 4);
-	pitch <- round(as.numeric(as.character(-d$pose_Rx/alpha)), 4);
-	yaw <- round(as.numeric(as.character(d$pose_Ry/alpha)), 4);
-	roll <- round(as.numeric(as.character(d$pose_Rz/alpha)), 4);
-
-	MOx <- round(as.numeric(as.character(d$pose_Tx)), 4);
-	MOy <- round(as.numeric(as.character(-d$pose_Ty)), 4);
-	MOz <- round(as.numeric(as.character(-d$pose_Tz)), 4);
-
-	dd <- data.frame(frame, time, timem, times, confidence, pitch, yaw, roll, MOx, MOy, MOz);
-	# Create a filter for 3-sigma outliers on the MOz variable
-	cis = which(colnames(dd) == "MOz");
-	ds <- lpl.R.dev.faceOutputAnalysis.filterOutliersForColumn(dd, cis, 3);
-	## Remove measurements with low confidence level
-	dc <- lpl.R.dev.openFaceOutputAnalysis.filterOnConfidenceLevel(ds, 0.8);
-	
-	## Compute the mean MOz
-	meanMOz <- mean(dc$MOz);
-	## The scale factor is defined like that
-	S <- round(as.numeric(as.character(meanMOz/MOz)), 4);
-
-	dd <- data.frame(dd, S);
-
-	## Add the vM.. variables
-	number_of_points <- 68;
-	listpointX <- vector(mode="list", length=number_of_points);
-	listpointY <- vector(mode="list", length=number_of_points);
-
-	r <- lpl.R.dev.faceOutputAnalysis.createRotationCoefficientsTable(dd, "direct", "XYZ");
-
-	for (j in c(1:number_of_points)) {
-
-		listpointX[[j]] <- numeric(line_number);
-		listpointY[[j]] <- numeric(line_number);
-
-		ix <- which(colnames(d) == paste("X_", (j-1), sep=""));
-		difx <- d[ ,ix] - MOx;
-		
-		iy <- which(colnames(d) == paste("Y_", (j-1), sep=""));
-		dify <- -d[ ,iy] - MOy;
-
-		iz <- which(colnames(d) == paste("Z_", (j-1), sep=""));
-		difz <- -d[ ,iz] - MOz;
-
-		X <- round((r$cxx*difx + r$cxy*dify + r$cxz*difz) + MOx, 4);
-	       	Y <- round((r$cyx*difx + r$cyy*dify + r$cyz*difz) + MOy, 4);	
-		Z <- round((r$czx*difx + r$czy*dify + r$czz*difz) + MOz, 4);
-
-		dd <- data.frame(dd, X, Y, Z);
-		colnames(dd)[ncol(dd)-2] <-  paste(paste("M", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "x", sep="");
-		colnames(dd)[ncol(dd)-1] <-  paste(paste("M", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "y", sep="");
-		colnames(dd)[ncol(dd)] <-  paste(paste("M", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "z", sep="");	
-	}
-
-	return (dd);
-}
-
 ##
 ## Add a column named label, with various code (N for NA data, S for too large or small face 
 ## dimension, P for positions too far away from the camera optical center, L for too large angles, and Y for frame which
 ## will be used to calibrate the head model
 ##
 ## data : The data frame
+##
+## return the transformed table
 ##
 lpl.R.dev.openFaceOutputAnalysis.addOpenFaceLabelToCleanData <- function(data) {
 
@@ -714,7 +609,10 @@ lpl.R.dev.openFaceOutputAnalysis.addOpenFaceLabelToCleanData <- function(data) {
 
 ##
 ## Create the label column with N label for data with low confidence values and Y for other points
+##
 ## data : The data frame
+##
+## return the transformed table
 ##
 lpl.R.dev.openFaceOutputAnalysis.addLabelForLowConfidenceFrame <- function(data) {
 
@@ -732,8 +630,11 @@ lpl.R.dev.openFaceOutputAnalysis.addLabelForLowConfidenceFrame <- function(data)
 
 ##
 ## Filter the data of measurements below the confidence level threshold
+##
 ##  data :The data frame
 ##  confidencelevelthreshold :The confidence level threshold
+##
+## return the filtered data
 ##
 lpl.R.dev.openFaceOutputAnalysis.filterOnConfidenceLevel <- function(data, confidencelevelthreshold) {
 
@@ -742,10 +643,11 @@ lpl.R.dev.openFaceOutputAnalysis.filterOnConfidenceLevel <- function(data, confi
 
 ##
 ##  Create a filter for data of measurements below the confidence level threshold
+##
 ##  data :The data frame
 ##  confidencelevelthreshold : The confidence level threshold
 ##
-##  The filter, column of LOGIGAL with TRUE value for row to be filtered and FALSE otherwise
+##  return the filter, column of LOGIGAL with TRUE value for row to be filtered and FALSE otherwise
 ##
 lpl.R.dev.openFaceOutputAnalysis.createConfidenceLevelFilter <- function(data, confidencelevelthreshold) {
 
@@ -758,7 +660,10 @@ lpl.R.dev.openFaceOutputAnalysis.createConfidenceLevelFilter <- function(data, c
 ##
 ## Prepare the OpenFace output (transformed in data frame) by adding a label
 ## column allowing to clean the data before applying the head model operation
+##
 ## iodf : The OpenFace output (transformed in data frame)
+##
+## return the table with label column added
 ##
 lpl.R.dev.openFaceOutputAnalysis.prepareDataFrameOpenFaceOutput <- function(iodf) {
 
@@ -771,6 +676,7 @@ lpl.R.dev.openFaceOutputAnalysis.prepareDataFrameOpenFaceOutput <- function(iodf
 
 ##
 ## Create the data filter for the wavelet analysis.
+##
 ## df : The data frame containing residuals
 ##
 ## return the the filter (a LOGICAL column with TRUE value for rows to discard and FALSE for rows to conserve) 
@@ -791,97 +697,3 @@ lpl.dev.openFaceOutputAnalysis.createFilterForWaveletAnalysis <- function(df) {
 
 	return (f);
 }
-
-
-
-
-
-lpl.R.dev.openFaceOutputAnalysis.addProjectedResidualsEstimate1 <- function(dd, d3D, dhmt) {
-
-	number_of_points <- 68;
-	line_number <- nrow(dd);
-	listpointX <- vector(mode="list", length=number_of_points);
-	listpointY <- vector(mode="list", length=number_of_points);
-	listpointZ <- vector(mode="list", length=number_of_points);
-
-	## Remove the mean X, Y, Z (head model) from the residuals
-	for (j in c(1:number_of_points)) {
-		
-		listpointX[[j]] <- numeric(line_number);
-		listpointY[[j]] <- numeric(line_number);
-		listpointZ[[j]] <- numeric(line_number);
-
-		ix <- which(colnames(d3D) == paste(paste("vP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "x", sep=""));
-		listpointX[[j]]  <-  round((d3D[ , ix] - dhmt$X[j]), 4);
-		
-		iy <- which(colnames(d3D) == paste(paste("vP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "y", sep=""));
-		listpointY[[j]] <- round((d3D[ , iy] - dhmt$Y[j]), 4);
-
-		iz <- which(colnames(d3D) == paste(paste("vP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "z", sep=""));
-		listpointZ[[j]] <- round((d3D[ , iz] - dhmt$Z[j]), 4);
-
-		dd <- data.frame(dd, listpointX[[j]], listpointY[[j]], listpointZ[[j]]);
-		colnames(dd)[ncol(dd)-2] <-  paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "x", sep="");
-		colnames(dd)[ncol(dd)-1] <-  paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "y", sep="");
-		colnames(dd)[ncol(dd)] <-  paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "z", sep="");	
-	}
-
-	return (dd);
-}	
-
-##
-## Create the projected residuals  
-## data : The data frame containing the S factor value and the angles
-## irc : The inverse rotation coefficients 
-## dhmt : The dirext head model table
-##
-lpl.R.dev.openFaceOutputAnalysis.addProjectedResidualsEstimate2 <- function(data, irc, dhmt) {
-
-	number_of_points <- 68;
-	
-	listpointX <- vector(mode="list", length=number_of_points);
-	listpointY <- vector(mode="list", length=number_of_points);
-	
-	cxx <- irc$cxx;
-	cxy <- irc$cxy;
-	cxz <- irc$cxz;
-
-	cyx <- irc$cyx;
-	cyy <- irc$cyy;
-	cyz <- irc$cyz;
-
-	czx <- irc$czx;
-	czy <- irc$czy;
-	czz <- irc$czz;
-	
-	for (j in c(1:number_of_points)) {
-		
-		listpointX[[j]] <- numeric(nrow(data));
-		listpointY[[j]] <- numeric(nrow(data));
-
-		ix <- which(colnames(data) == paste(paste("vM", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "x", sep=""));
-		xobs <- data[ ,ix]/data$S;
-		
-		iy <- which(colnames(d) ==paste(paste("vM", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "y", sep=""));
-		yobs <- -data[ ,iy]/data$S;
-	
-		Xobs = (cxx - cxz*czx/czz)*xobs + (cxy - cxz*czy/czz)*yobs;
-		Yobs = (cyx - cyz*czx/czz)*xobs + (cyy - cyz*czy/czz)*yobs;
-
-		listpointX[[j]] = round(Xobs - dhmt$X[j] + cxz/czz*dhmt$Z[j], 4);
-		listpointY[[j]] = round(Yobs - dhmt$Y[j] + cyz/czz*dhmt$Z[j], 4);
-
-		if (j == 1) {
-			dd <- data.frame(listpointX[[j]], listpointY[[j]]);
-		} else {
-			dd <- data.frame(dd, listpointX[[j]], listpointY[[j]]);
-		}
-		colnames(dd)[ncol(dd)-1] <- paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "x", sep="");
-		colnames(dd)[ncol(dd)] <-paste(paste("rP", lpl.R.dev.faceOutputAnalysis.getStringNumber(j), sep=""), "y", sep="");
-	}
-
-	dd <- data.frame(data, dd);
-
-	return (dd);
-}
-
