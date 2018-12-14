@@ -201,7 +201,12 @@ lpl.R.dev.hmad.createHtmlDescription <- function(data, software, projectname) {
 
 	line <- paste("Total number of frames:",  (nrow(data)), sep=" ");
 	df <- lpl.R.dev.htmldf.addLine(df, line);
-	line <- paste("Total duration:",  (nrow(data)/25), "seconds or", (lpl.R.dev.faceOutputAnalysis.stomnsString(nrow(data)/25)), sep=" ");
+
+	framerate <- lpl.R.dev.openFaceOutputAnalysis.computeFrameRate(data);
+	line <- paste("Frame rate:",  framerate, "frames per second", sep=" ");
+	df <- lpl.R.dev.htmldf.addLine(df, line);
+
+	line <- paste("Total duration:",  (nrow(data)/framerate), "seconds or", (lpl.R.dev.faceOutputAnalysis.stomnsString(nrow(data)/framerate)), sep=" ");
 	df <- lpl.R.dev.htmldf.addLine(df, line);
 	df <- lpl.R.dev.htmldf.addLine(df, "");
 
@@ -236,7 +241,7 @@ lpl.R.dev.hmad.createHtmlDescription <- function(data, software, projectname) {
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
-	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "Number of frames far from the frontal head position");
+	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "Number of frames too far away from the frontal head position ( > 30 degrees)");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(subset(data, data$label == "L")));
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
@@ -246,7 +251,7 @@ lpl.R.dev.hmad.createHtmlDescription <- function(data, software, projectname) {
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
-	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "Number of frames far from the mean depth position (Z-axis)");
+	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "Number of frames with the scale parameter far from the mean position (Z-axis)");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(subset(data, data$label == "S")));
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 	
@@ -266,13 +271,14 @@ lpl.R.dev.hmad.createHtmlDescription <- function(data, software, projectname) {
 
 	line <- paste("Head model file:", paste(projectdir, "model", "dhmt.txt", sep="/"), sep=" ");
 	df <- lpl.R.dev.htmldf.addLine(df, line);
-	line <- paste("Measurement of the dimension of the head in pixels:", round(lpl.R.dev.openFaceOutputAnalysis.meanHeadDimensionInPixels(software, projectname), 2) , sep=" ");
+	dim = lpl.R.dev.openFaceOutputAnalysis.meanHead2DimensionInMillimeters(software, projectname);
+	line <- paste("Dimension of the face in millimeters, length =", round(dim[1], 0), "mm, height =", round(dim[2], 0), "mm", sep=" ");
 	df <- lpl.R.dev.htmldf.addLine(df, line);
 	
  
 	line <- paste("Dispersion of residual landmark movements file:", paste(projectdir, "model", "rrsdt.txt", sep="/"), sep=" ");
 	df <- lpl.R.dev.htmldf.addLine(df, line);
-	line <- paste("Mean dispersion of residuals in pixels:", round(lpl.R.dev.faceOutputAnalysis.meanDispersionInPixels(software, projectname), 2) , sep=" ");
+	line <- paste("Mean dispersion of residuals in millimeters:", round(lpl.R.dev.faceOutputAnalysis.meanDispersionInPixels(software, projectname), 2) , "mm", sep=" ");
 	df <- lpl.R.dev.htmldf.addLine(df, line);
 	cat(line);
 
