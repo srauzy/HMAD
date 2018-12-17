@@ -31,7 +31,6 @@ lpl.R.dev.hmad.createHeadModelAndResiduals <- function(software, projectname) {
 			csvprojectdir <- paste(projectdir, "/processed/", sep="");
 			cat(paste("LOAD CSV FILE", filename, "in directory", csvprojectdir, "...\n"));
 			csv <- lpl.R.dev.openFaceOutputAnalysis.loadOpenFaceSingleFaceOutput(csvprojectdir, filename);
-
 			d <- lpl.R.dev.openFaceOutputAnalysis.createHeadModelAndResiduals(projectdir, csv);
 		}
 	## IntraFace output	
@@ -267,6 +266,14 @@ lpl.R.dev.hmad.createHtmlDescription <- function(data, software, projectname) {
 
 	df <- lpl.R.dev.htmldf.closeHtmlTable(df);
 
+	FOLDER_TABLES <- paste(projectdir, "tables", sep="/"); 
+	dfloc <- loadInternalDataFrame(FOLDER_TABLES, "camera_floc.txt");
+
+	line <- paste("Focal length and camera optical center file:", paste(projectdir, "tables", "camera_floc.txt", sep="/"), sep=" ");
+	df <- lpl.R.dev.htmldf.addLine(df, line);
+	line <- paste("Mean distance between the camera and the head =", round(dfloc$mZ[1], 0), "millimeters", sep=" ");
+	df <- lpl.R.dev.htmldf.addLine(df, line);
+
 	df <- lpl.R.dev.htmldf.addLine(df, "");
 
 	line <- paste("Head model file:", paste(projectdir, "model", "dhmt.txt", sep="/"), sep=" ");
@@ -280,7 +287,6 @@ lpl.R.dev.hmad.createHtmlDescription <- function(data, software, projectname) {
 	df <- lpl.R.dev.htmldf.addLine(df, line);
 	line <- paste("Mean dispersion of residuals in millimeters:", round(lpl.R.dev.faceOutputAnalysis.meanDispersionInPixels(software, projectname), 2) , "mm", sep=" ");
 	df <- lpl.R.dev.htmldf.addLine(df, line);
-	cat(line);
 
 	df <- lpl.R.dev.htmldf.closeHtmlBody(df);
 	df <- lpl.R.dev.htmldf.addLine(df, "");

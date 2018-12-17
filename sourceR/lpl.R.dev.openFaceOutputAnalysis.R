@@ -20,7 +20,7 @@ lpl.R.dev.openFaceOutputAnalysis.loadOpenFaceSingleFaceOutput <- function(projec
 	return (d);
 }
 
-lpl.R.dev.openFaceOutputAnalysis.meanHeadDimensionInPixels <- function(software, projectname) {
+lpl.R.dev.openFaceOutputAnalysis.meanHeadDimensionInMillimeters <- function(software, projectname) {
 
 	projectdir <- paste("projects/", projectname, sep="");
 	## Convert the string software in uppercases
@@ -38,7 +38,13 @@ lpl.R.dev.openFaceOutputAnalysis.meanHeadDimensionInPixels <- function(software,
 	return ((sd(xn) + sd(yn))/2);
 }
 
-lpl.R.dev.openFaceOutputAnalysis.meanHead2DimensionInPixels <- function(software, projectname) {
+##
+## Return the X-Y dimension of the head in millimeters (max minus min of the landmarks of the head model on each axis)
+##
+## software : The software used
+## projectname : The name of the project
+##
+lpl.R.dev.openFaceOutputAnalysis.meanHead2DimensionInMillimeters <- function(software, projectname) {
 
 	projectdir <- paste("projects/", projectname, sep="");
 	## Convert the string software in uppercases
@@ -59,11 +65,7 @@ lpl.R.dev.openFaceOutputAnalysis.meanHead2DimensionInPixels <- function(software
 	xymean[1] = xmax - xmin;
 	xymean[2] = ymax - ymin;
 
-	xn <- dhmt[,2] - dhmt[28, 2];
-	yn <- dhmt[,4] - dhmt[28, 4];
-
 	return (xymean);
-	return ((sd(xn) + sd(yn))/2);
 }
 
 ##
@@ -99,6 +101,8 @@ lpl.R.dev.openFaceOutputAnalysis.createHeadModelAndResiduals <- function(project
 	dd <- lpl.R.dev.openFaceOutputAnalysis.addProjectedResidualsEstimate(dd, d, irc, dhmt);
 
 	dd <- lpl.R.dev.faceOutputAnalysis.addProjectedErrorAmplitudes(dd, irc);
+
+	dd <- lpl.R.dev.openFaceOutputAnalysis.addGlobalDispersionEstimate(dd);
 
 	FOLDER_TABLES <- paste(projectdir, "tables", sep="/");
 	if (!file.exists(FOLDER_TABLES)) {
@@ -181,6 +185,36 @@ lpl.R.dev.openFaceOutputAnalysis.addProjectedResidualsEstimate <- function(data,
 	}
 	## The result
 	dd <- data.frame(data, dd);
+
+	return (dd);
+}
+
+##
+## Add the global mean dispersion of the residuals
+##
+## d : The data frame containing the S factor value and the angles
+##
+## return the global mean dispersion of the residuals
+##
+lpl.R.dev.openFaceOutputAnalysis.addGlobalDispersionEstimate <- function(d) {
+
+	indexes_of_residuals <- grep('rP.*', colnames(d), value = FALSE);
+
+	nbr_residuals <- length(indexes_of_residuals);
+
+	gde <- numeric(nrow(d));
+
+	## Loop on the residuals
+	for (j in c(1:nbr_residuals)) {
+		
+		## add the square of the residuals
+		gde <- gde + d[, indexes_of_residuals[j]]*d[, indexes_of_residuals[j]];
+	}
+
+	gde <- sqrt(gde/nbr_residuals);
+
+	## The result
+	dd <- data.frame(d, gde);
 
 	return (dd);
 }
@@ -404,6 +438,22 @@ lpl.R.dev.openFaceOutputAnalysis.convertInPixel <- function(dfloc, values, axis)
 }
 
 ##
+## Compute the frame rate, i.e. number of frames per second for data frame with "timestamp" or "time" column name
+##
+## d : The csv OpenFace output as a data frame containing the pertinent information for our analysis
+##
+## return the frame rate
+##
+lpl.R.dev.openFaceOutputAnalysis.computeFrameRate <- function(d) {
+
+	if("timestamp" %in% colnames(d)) {
+		return (round(1/(d$timestamp[2] - d$timestamp[1]), 0));
+	} else {
+		return (round(1/(d$time[2] - d$time[1]), 0));
+	}
+}
+
+##
 ## Form the primary data, all the parameters exepts residuals (which need head model)
 ##
 ## projectdir : The directory of the project where the cvs output file is
@@ -415,8 +465,10 @@ lpl.R.dev.openFaceOutputAnalysis.formPrimaryData <- function(projectdir, d) {
 
 	line_number <- nrow(d);
 
+	framerate = lpl.R.dev.openFaceOutputAnalysis.computeFrameRate(d);
+
 	cat(paste("TREATING THE CSV FILE...\n"));
-	cat(paste("Number of frames :", line_number, ", video duration :", lpl.R.dev.faceOutputAnalysis.stomnsString(line_number/25), "...\n"));
+	cat(paste("Number of frames :", line_number, ", frame rate :", framerate, " frames per second, video duration :", lpl.R.dev.faceOutputAnalysis.stomnsString(line_number/framerate), "...\n"));
 
 	frame <- numeric(line_number);
 	time <- numeric(line_number);
@@ -427,10 +479,9 @@ lpl.R.dev.openFaceOutputAnalysis.formPrimaryData <- function(projectdir, d) {
 	yaw <- numeric(line_number);
 	roll <- numeric(line_number);
 
-	time <- round(as.numeric(d$timestamp), 4);
-
 	for (i in c(1:line_number)) {
 		frame[i] = i;
+		time[i] <- round(as.numeric((i-1)/framerate), 4);
 		## time in seconds 
 		timem[i] <-  round(as.numeric(floor(time[i]/60)), 4);
 		## time in minutes and seconds
@@ -448,6 +499,17 @@ lpl.R.dev.openFaceOutputAnalysis.formPrimaryData <- function(projectdir, d) {
 
 	## Compute the focal length and optical center of the camera by linear regression
 	dfloc <- lpl.R.dev.openFaceOutputAnalysis.computeFocalLengthAndOpticalCenter(d);
+
+	## Save these quantities
+	FOLDER_TABLES <- paste(projectdir, "tables", sep="/");
+	if (!file.exists(FOLDER_TABLES)) {
+		dir.create(FOLDER_TABLES);
+	}
+	if (!file.exists(paste(FOLDER_TABLES, "camera_floc.txt", sep="/"))) {
+		cat("Save the camera focal length and otical center parameters  in tables/camera_floc.txt ...\n");
+		saveInternalDataFrame(dfloc, FOLDER_TABLES, "camera_floc.txt");
+	}
+
 	## Compute the camera projection for the mean head movement
 	mcp <- lpl.R.dev.openFaceOutputAnalysis.computeCameraProjection(dfloc, d$pose_Tx, d$pose_Ty, d$pose_Tz);
 
@@ -508,8 +570,10 @@ lpl.R.dev.openFaceOutputAnalysis.createEyebrowActionUnitTable <- function(d) {
 
 	line_number <- nrow(d);
 
+	framerate = lpl.R.dev.openFaceOutputAnalysis.computeFrameRate(d);
+
 	cat(paste("TREATING THE CSV FILE...\n"));
-	cat(paste("Number of frames :", line_number, ", video duration :", lpl.R.dev.faceOutputAnalysis.stomnsString(line_number/25), "...\n"));
+	cat(paste("Number of frames :", line_number, ", video duration :", lpl.R.dev.faceOutputAnalysis.stomnsString(line_number/framerate), "...\n"));
 
 	AU01 <- numeric(line_number);
 	AU01b <- numeric(line_number);
@@ -550,8 +614,10 @@ lpl.R.dev.openFaceOutputAnalysis.createActionUnitTable <- function(d) {
 	## The number of columns
 	number_of_columns <- length(list_column_indexes_AU);
 
-	df <- data.frame(d[, 3]);
-	colnames(df)[1] <-  "time";
+	framerate = lpl.R.dev.openFaceOutputAnalysis.computeFrameRate(d);
+
+	time <- round(as.numeric((d$frame-1)/framerate), 4);
+	df <- data.frame(time);
 	#j = 1;
 	#df <- data.frame(d[, list_column_indexes_AU[j]]);
 	#colnames(df)[j] <-  colnames(d)[list_column_indexes_AU[j]];
