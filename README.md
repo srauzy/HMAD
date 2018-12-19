@@ -1,7 +1,7 @@
 ## `HMAD` project
 ### Head Movements (and internal facial movements) Automatic Detection
 **Author:** Stéphane Rauzy, Laboratoire Parole et Language, CNRS & AMU, Aix-en-Provence, France
-**Contributors:** Aurélie Goujon (LPL, AMU), Stéphane Rauzy (LPL, CNRS & AMU)
+<br> **Contributors:** Aurélie Goujon (LPL, AMU), Stéphane Rauzy (LPL, CNRS & AMU)
 
 The `HMAD` project aims at providing R script and source codes allowing automatic detection of internal facial movements and head movements from a video record.
 
