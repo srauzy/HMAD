@@ -17,11 +17,11 @@ source("sourceR/loadSourcesAndPackages.R");
 ##
 ## Define the path of directory where OpenFace executable files are installed
 ##
-OPENFACE_DIRECTORY <- "C:/Users/rauzy/Desktop/OpenFace_2.0.5_win_x86"
+OPENFACE_DIRECTORY <- "C:/Users/rauzy/Desktop/OpenFace_2.0.5_win_x86";
 ##
 ## Define the software used to track the face
 ##
-TRACKING_SOFTWARE <- "OPENFACE"
+TRACKING_SOFTWARE <- "OPENFACE";
 
 ##
 ## List the HMAD projects
@@ -56,3 +56,31 @@ audf <- lpl.R.dev.hmad.createActionUnitTable(TRACKING_SOFTWARE, PROJECT_NAME);
 ##
 ofcsvdf <- lpl.R.dev.hmad.loadCsvData(TRACKING_SOFTWARE, PROJECT_NAME);
 ##
+##
+##
+## EyeBrows Movements Automatic Detection
+##
+## Create the files for EBMAD
+##
+lpl.R.dev.ebmad.computeEBMAD(TRACKING_SOFTWARE, PROJECT_NAME, df);
+##
+## Create the Elan annotation file
+##
+## Define the parameters and file names
+##
+MEDIA_FILE_NAME <- lpl.R.dev.ebmad.lpl.R.dev.ebmad.getVideoFileName(PROJECT_NAME);
+VIDEO_MIME_TYPE <- lpl.R.dev.ebmad.getElanMimeType(PROJECT_NAME);
+type <- "RAISE_AND_FROWN";
+EAF_ANNOTATION_FILE_NAME <- lpl.R.dev.ebmad.getDefaultAnnotationFileName(type);
+##
+## Create the Elan eaf annotation file name
+##
+lpl.R.dev.ebmad.createElanEAFFile(type, TRACKING_SOFTWARE, PROJECT_NAME, MEDIA_FILE_NAME, EAF_ANNOTATION_FILE_NAME, VIDEO_MIME_TYPE);
+##
+## Plot the head model
+##
+library(ggplot2)
+source("sourceR/lpl.R.dev.hmplot.R")
+##
+lpl.R.dev.hmplot.plotOpenFaceHeadModel(PROJECT_NAME);
+
