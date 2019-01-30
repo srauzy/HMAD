@@ -540,6 +540,62 @@ createTierEBMADTypeTable <- function(ebmad) {
 }
 
 ##
+## Get the name of the file (not directory) in the project directory (if all is right, it is the video file) and return it
+##
+## projectname : The name of the project in the directory "projects"
+##
+## return the video file name or null in case of problem
+##
+lpl.R.dev.ebmad.getVideoFileName<- function(projectname) {
+
+	projectdir <- paste("projects/", projectname, sep="");
+	listfiles <- list.files(projectdir, pattern=".*\\..*");
+	if (length(listfiles) < 1) {
+		return (cat(paste("No video file found in project directory", projectdir, "...")));
+	} else if (length(listfiles) > 1) {
+		return (cat(paste("More than one candidate for the video file in the project directory", projectdir, "...")));
+	}
+	return (listfiles[1]);
+}
+
+##
+## Return the ELAN video Mime type in function of the extension of the video file or null if not found
+##
+## projectname : The name of the project in the directory "projects"
+##
+lpl.R.dev.ebmad.getElanMimeType<- function(projectname) {
+
+	vfn <- lpl.R.dev.ebmad.getVideoFileName(projectname);
+	if (endsWith(vfn, ".mp4")) {
+		return ("video/mp4");
+	} else if (endsWith(vfn, ".avi")) {
+	       return ("video/*");
+	} else if (endsWith(vfn, ".mov")) {
+	       return ("video/quicktime");
+	} else if (endsWith(vfn, ".mpg") || endsWith(vfn, ".mpeg")) {
+		return ("video/mpeg");
+	}
+
+	cat("Mime Type not found! Please consult the Elan instruction guideline (https://www.mpi.nl/corpus/html/lamus/apa.html) and instantiate manually the VIDEO_MIME_TYPE R variable...");
+}	
+	
+##
+## Return the name of the eaf output file name function of the type
+##
+## type : The type of annotations ("RAISE", "FROWN" or "RAISE_AND_FROWN")
+##
+lpl.R.dev.ebmad.getDefaultAnnotationFileName<- function(type) {
+	
+	if (type == "RAISE") {
+		return ("ebmadr.eaf");
+	} else if (type == "FROWN") {
+		return ("ebmadf.eaf");
+	} else {
+		return ("ebmadraf.eaf");
+	}
+}
+
+##
 ## Create the ELAN eaf output file format for editing the automatic annotation of the eyebrows action (in directory
 ## in projects/projectname/software/result)
 ##
@@ -561,7 +617,7 @@ lpl.R.dev.ebmad.createElanEAFFile<- function(ebmadtype, software, projectname, m
 	projectdir <- paste(projectdir, "/", software, sep="");
 
 	## The folder for the tables
-	FOLDER_TABLES <- paste(projectdir, "EBMAD", "tables", sep="/");
+	FOLDER_TABLES <- paste(projectdir, "tables", sep="/");
 
 	if (ebmadtype == "RAISE") {
 		if (!fileExists(FOLDER_TABLES, "ebrmad.txt")) {
