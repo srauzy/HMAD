@@ -616,8 +616,10 @@ lpl.R.dev.ebmad.createElanEAFFile<- function(ebmadtype, software, projectname, m
 	## The project directory depending on the software used
 	projectdir <- paste(projectdir, "/", software, sep="");
 
+	ebmaddir <- paste(projectdir, "/", "EBMAD", sep="");
+	
 	## The folder for the tables
-	FOLDER_TABLES <- paste(projectdir, "tables", sep="/");
+	FOLDER_TABLES <- paste(ebmaddir, "tables", sep="/");
 
 	if (ebmadtype == "RAISE") {
 		if (!fileExists(FOLDER_TABLES, "ebrmad.txt")) {
