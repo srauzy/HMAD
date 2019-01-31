@@ -68,7 +68,7 @@ lpl.R.dev.ebmad.computeEBMAD(TRACKING_SOFTWARE, PROJECT_NAME, df);
 ##
 ## Define the parameters and file names
 ##
-MEDIA_FILE_NAME <- lpl.R.dev.ebmad.lpl.R.dev.ebmad.getVideoFileName(PROJECT_NAME);
+MEDIA_FILE_NAME <- lpl.R.dev.ebmad.getVideoFileName(PROJECT_NAME);
 VIDEO_MIME_TYPE <- lpl.R.dev.ebmad.getElanMimeType(PROJECT_NAME);
 type <- "RAISE_AND_FROWN";
 EAF_ANNOTATION_FILE_NAME <- lpl.R.dev.ebmad.getDefaultAnnotationFileName(type);
