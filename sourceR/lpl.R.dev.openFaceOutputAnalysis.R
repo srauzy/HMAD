@@ -763,3 +763,28 @@ lpl.dev.openFaceOutputAnalysis.createFilterForWaveletAnalysis <- function(df) {
 
 	return (f);
 }
+
+##
+## Create the data filter for the wavelet analysis.
+##
+## df : The data frame containing residuals
+## factor_error_angle : The multiplicative factor for sigma to discard frame with large vertical error on Y residuals
+##
+## return the the filter (a LOGICAL column with TRUE value for rows to discard and FALSE for rows to conserve) 
+##
+lpl.dev.openFaceOutputAnalysis.createFilterConfidenceHeadSizeAndLargeAngle <- function(df, factor_error_angle) {
+
+	fc <- lpl.R.dev.openFaceOutputAnalysis.createConfidenceLevelFilter(df, 0.8);
+	## Create a filter for 3-sigma outliers on the S factor 
+	cis = which(colnames(df) == "S");
+	fs <- lpl.R.dev.faceOutputAnalysis.createFilterOutliersForColumn(df, cis, 3);
+	## Merge the two filters
+	f1 <- lpl.R.dev.faceOutputAnalysis.mergeFilter(fs, fc);
+	## Create a filter for 3-sigma outliers on the projection amplitude error variable on y
+	cieay = which(colnames(df) == "eaY");
+	feay <- lpl.R.dev.faceOutputAnalysis.createFilterOutliersForColumn(df, cieay, factor_error_angle);
+	## Merge the filters
+	f <- lpl.R.dev.faceOutputAnalysis.mergeFilter(f1, feay);
+
+	return (f);
+}

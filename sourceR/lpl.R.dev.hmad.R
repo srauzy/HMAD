@@ -93,6 +93,88 @@ lpl.R.dev.hmad.createActionUnitTable <- function(software, projectname) {
 }
 
 ##
+## Load and return the function model (as a data frame) which depends on the output software used.
+##
+## software : The software used to created the output
+## filename : The filename in "projects/models" containing the function definition in terms of coefficients of residuals or AU values
+##
+lpl.R.dev.hmad.loadFunctionModel <- function(software, filename) {
+
+	## Convert the string software in uppercases
+	software <- toupper(software);
+
+	function_directory <- paste("models", "/", software, sep="");
+
+	dffunction <- loadInternalDataFrame(function_directory, filename);
+	
+	return (dffunction)
+}
+
+##
+## Create the function from the residuals, their coefficients and their standard dispersions
+## df : The data frame containing residual facial movements
+## dfc : The data frame containing the coefficients for each residual on X and Y axis
+## dfsd : The data frame containing standard deviation for each residual on X and Y axis
+##
+lpl.R.dev.hmad.functionColumn <- function(df, dfc, dfsd) {
+
+	wt <- 0;
+	func <- numeric(nrow(df));
+	for (i in c(1:nrow(dfc))) {
+		landmark <- as.character(dfc$landmark[i]);
+		dfsd_landmark_row_index <- which(dfsd$landmark == landmark);
+		if (dfc$coefx[i] != 0) {
+			sd <- dfsd$sdx[dfsd_landmark_row_index];
+			df_landmark_column_index <- which(colnames(df) == paste("r", landmark, "x", sep=""));
+			wt <- wt + 1/sd;
+			func <- func + dfc$coefx[i]*df[, df_landmark_column_index]/sd;
+		}
+		if (dfc$coefy[i] != 0) {
+			sd <- dfsd$sdy[dfsd_landmark_row_index];
+			df_landmark_column_index <- which(colnames(df) == paste("r", landmark, "y", sep=""));
+			wt <- wt + 1/sd;
+			func <- func + dfc$coefy[i]/sd*df[, df_landmark_column_index];
+		}
+	}	
+	func <- func/wt;
+	
+	return (func);
+}
+
+##
+## Create the function from the residuals, their coefficients and their standard dispersions, the values of the AU and their coefficients
+## df : The data frame containing residual facial movements
+## dfc : The data frame containing the coefficients for each residual on X and Y axis
+## dfsd : The data frame containing standard deviation for each residual on X and Y axis
+## audf : The data frame containing the AU value
+## audfc : The data frame containing the AU coefficient of the model
+##
+lpl.R.dev.hmad.functionAllColumn <- function(df, dfc, dfsd, audf, audfc) {
+
+	
+}
+
+##
+## Create the function from the values of the AU and their coefficients
+## audf : The data frame containing the AU values
+## audfc : The data frame containing the AU coefficient of the model
+##
+lpl.R.dev.hmad.functionAUColumn <- function(audf, audfc) {
+
+	func <- numeric(nrow(audf));
+	for (i in c(1:nrow(audfc))) {
+		au <- as.character(audfc$AU[i]);
+		if (audfc$coef[i] != 0) {
+			df_au_column_index <- which(colnames(audf) == au);
+			func <- func + audfc$coef[i]*audf[, df_au_column_index];
+		}
+	}	
+	func <- func;
+	
+	return (func);
+}
+
+##
 ## Load the csv output file of the tracking software
 ##
 ## software : The software used for extracting the video output 

@@ -12,8 +12,12 @@ source("sourceR/lpl.R.dev.hmad.R");
 ## Load the libraries specific to eyebrow motion detection
 source("sourceR/lpl.R.dev.ebmad.R");
 source("sourceR/lpl.R.dev.ebmotion.R");
+## Load the libraries specific to smile detection
+source("sourceR/lpl.R.dev.smad.R");
 ## Load the libraries required during the analysis
 source("sourceR/lpl.R.dev.wavelets.R");
 source("sourceR/lpl.R.dev.elan.R");
 source("sourceR/lpl.R.dev.htmldf.R");
+source("sourceR/lpl.R.dev.utils.R");
+source("sourceR/lpl.R.dev.hmm.R");
 
