@@ -4,7 +4,7 @@
 ## The mother wavelet of integral 0 and scale sigma (the normalisation is in sigma^(-1)
 ## time : The time on which the wavelet in centered
 ## sigma : The scale of the wavelet
-## wDparameter : For a standard top hat wavelet, D = 2*sigma, but one can tune this parameter to change the area spanned by the negative
+## wDparameter : For a standard top hat wavelet, D = 2, but one can tune this parameter to change the area spanned by the negative
 ## left and right side of the mother wavelet
 ##
 lpl.R.dev.wavelets.motherwavelet <- function(time, sigma, wDparameter) {
@@ -29,121 +29,60 @@ lpl.R.dev.wavelets.motherwavelet <- function(time, sigma, wDparameter) {
 }
 
 ##
-## The mother wavelet of integral 0 and scale sigma (the normalisation is in sigma^(-1)
-## time : The time on which the wavelet in centered
-## sigma : The scale of the wavelet
-## D : For a standard top hat wavelet, D = 2*sigma, but one can tune this parameter to change the area spanned by the negative
+## Compute the wavelet coefficients and the values of the support quality  
+##
+## d : The data frame containing the column f which will be transformed (and the column w representing the weights)
+## si : The scale index 
+## wDparameter : For a standard top hat wavelet, D = 2, but one can tune this parameter to change the area spanned by the negative
 ## left and right side of the mother wavelet
-##
-lpl.R.dev.wavelets.wavelet <- function(si, siD) {
-
-	n <- 2*si + 2*siD;
-	w <- numeric(n);
-	for (i in c(1:n)) {
-		if (i < siD+1) {
-			w[i] <- -1/siD;
-		} else if (i < siD+2*si+1) {
-			w[i] <- 1/si;
-		} else {
-			w[i] <- -1/siD;
-		}
-	}
-	return (w);
-}
-
-##
-## The mother wavelet of integral 0 and scale sigma (the normalisation is in sigma^(-1)
-## time : The time on which the wavelet in centered
-## sigma : The scale of the wavelet
-## D : For a standard top hat wavelet, D = 2*sigma, but one can tune this parameter to change the area spanned by the negative
-## left and right side of the mother wavelet
-##
-
-
+## 
 lpl.R.dev.wavelets.iwaveletatscale <- function(d, si, wDparameter) {
 
+	## The length of the negative part of the wavelet (on the index axis)  
 	siD <- wDparameter*si;
-	n <- nrow(f);
-	##wcvector <- vector(mode="list", length=n);
-	wcvector <-numeric(n);
-
-	for (i in c(1:n)) {
-		if (i-si-siD+1 < 1 | i+si+siD > n) {
-			##wcvector[[i]] <- c(0, -1, -1, -1);
-			wcvector[i] <- -1;
-		} else {	
-			imin = max(1, i-si-siD+1);
-			imax <- min(n, i+si+siD);
-
-			dl <- d[imin:(i-si), ]; 
-			dc <- d[(i-si+1):(i+si), ]; 
-			dr <- d[(i+si+1):imax, ];
-
-			wcvector[i] <- lpl.R.dev.wavelets.iwavelet(dl, dc, dr, si, siD)[1];
-			##wcvector[[i]] <- lpl.R.dev.wavelets.iwavelet(dl, dc, dr, si, siD);
-		}
-	}
-	return (wcvector);
-}
-
-lpl.R.dev.wavelets.iwaveletatscale1 <- function(d, si, wDparameter) {
-
-	siD <- wDparameter*si;
-	n <- nrow(f);
-	##wcvector <- vector(mode="list", length=n);
-	wcvector <-numeric(n);
-
-	for (i in c(1:n)) {
-		if (i-si-siD+1 < 1 | i+si+siD > n) {
-			##wcvector[[i]] <- c(0, -1, -1, -1);
-			wcvector[i] <- -1;
-		} else {	
-			imin = max(1, i-si-siD+1);
-			imax <- min(n, i+si+siD);
-
-			dl <- d[imin:(i-si), ]; 
-			dc <- d[(i-si+1):(i+si), ]; 
-			dr <- d[(i+si+1):imax, ];
-
-			wcvector[i] <- lpl.R.dev.wavelets.iwavelet(dl, dc, dr, si, siD)[1];
-			##wcvector[[i]] <- lpl.R.dev.wavelets.iwavelet(dl, dc, dr, si, siD);
-		}
-	}
-	return (wcvector);
-}
-
-lpl.R.dev.wavelets.iwaveletatscale <- function(d, si, wDparameter) {
-
-	siD <- wDparameter*si;
+	## The length of the support
 	n <- nrow(d);
-	##wcvector <- vector(mode="list", length=n);
+	## The wavelet coefficients at each point of the support
 	wc <-numeric(n);
+	## The support quality at each point of the support
 	q <-numeric(n);
 
+	## Loop on the support
 	for (i in c(1:n)) {
+		## For each position, the wavelet coefficient is 0 if the wavelet function is 0
 		if (i-si-siD+1 < 1 | i+si+siD > n) {
-			##wcvector[[i]] <- c(0, -1, -1, -1);
 			wc[i] <- 0;
 			q[i] <- 0;
-		} else {	
-			imin = max(1, i-si-siD+1);
-			imax <- min(n, i+si+siD);
-
-			dl <- d[(i-si-siD+1):(i-si), ]; 
+		## Else create the left, center and right data frames containing the values of w
+		} else {
+			## Subset of the data frame for the left part of the wavelet
+			dl <- d[(i-si-siD+1):(i-si), ];
+		       	## Subset of the data frame for the center part of the wavelet	
 			dc <- d[(i-si+1):(i+si), ]; 
+			## Subset of the data frame for the right part of the wavelet
 			dr <- d[(i+si+1):(i+si+siD), ];
-
+			## Compute the wavelet coefficient and the support quality
 			res <- lpl.R.dev.wavelets.iwavelet(dl, dc, dr, si, siD);
+			## Retrieve the wavelet coefficient and the support quality
 			wc[i] <- res[1];
 			q[i] <- res[2];
-			##wcvector[[i]] <- lpl.R.dev.wavelets.iwavelet(dl, dc, dr, si, siD);
 		}
 	}
+	## Create a data frame with two columns (wc and q) and return it
 	return (data.frame(wc, q));
 }
 
-## si= 1; siD=si; 
-## si= 1; siD=si; dl <- d[(i-si-siD+1):(i-si), ]; dc <- d[(i-si+1):(i+si), ]; dr <- d[(i+si+1):(i+si+siD), ]
+##
+## Compute the wavelet coefficient and the support quality 
+##
+## dl : The data frame containing the data associated with left negative part of the wavelet 
+## dc : The data frame containing the data associated with center positive part of the wavelet 
+## dr : The data frame containing the data associated with right negative part of the wavelet
+## si : The scale index (i.e. half of the length (in index) of the center area
+## siD : The length (in index) of the left area and of the right area
+##
+## return the pair wavelet coefficient support quality
+##
 lpl.R.dev.wavelets.iwavelet <- function(dl, dc, dr, si, siD) {
 
 	qwl <- sum(dl$w)/nrow(dl);
@@ -158,6 +97,135 @@ lpl.R.dev.wavelets.iwavelet <- function(dl, dc, dr, si, siD) {
 	return (c(wc, (qwl+qwc+qwr)/3));
 }	
 
+##
+## Compute the Haar wavelet coefficients and the values of the support quality  
+##
+## d : The data frame containing the column f which will be transformed (and the column w representing the weights)
+## si : The scale index 
+## sexponent : The scale exponent for the normalization (1 or 1/2)
+## 
+lpl.R.dev.wavelets.ihaarwaveletatscale <- function(d, si, sexponent) {
+
+	## The length of the support
+	n <- nrow(d);
+	## The wavelet coefficients at each point of the support
+	wc <-numeric(n);
+	## The support quality at each point of the support
+	q <-numeric(n);
+
+	## Loop on the support
+	for (i in c(1:n)) {
+		## For each position, the wavelet coefficient is 0 if the wavelet function is 0
+		if (i-si+1 < 1 | i+si > n) {
+			wc[i] <- 0;
+			q[i] <- 0;
+		## Else create the left, center and right data frames containing the values of w
+		} else {
+			## Subset of the data frame for the left part of the wavelet
+			dl <- d[(i-si+1):(i), ];
+			## Subset of the data frame for the right part of the wavelet
+			dr <- d[(i+1):(i+si), ];
+			## Compute the wavelet coefficient and the support quality
+			res <- lpl.R.dev.wavelets.ihaarwavelet(dl, dr, si, sexponent);
+			## Retrieve the wavelet coefficient and the support quality
+			wc[i] <- res[1];
+			q[i] <- res[2];
+		}
+	}
+	## Create a data frame with two columns (wc and q) and return it
+	return (data.frame(wc, q));
+}
+
+##
+## Compute the Haar wavelet coefficient and the support quality 
+##
+## dl : The data frame containing the data associated with left negative part of the wavelet 
+## dr : The data frame containing the data associated with right negative part of the wavelet
+## si : The scale index (i.e. the length (in index) of the left or right area
+## sexponent : The scale exponent for the normalization (1 or 1/2)
+##
+## return the pair wavelet coefficient support quality
+##
+lpl.R.dev.wavelets.ihaarwavelet <- function(dl, dr, si, sexponent) {
+
+	qwl <- sum(dl$w)/nrow(dl);
+	qwr <- sum(dr$w)/nrow(dr);
+
+	wc <- 0;
+	
+	if (qwl != 0) wc <- wc - sum(dl$f*dl$w)/qwl;
+        if (qwr != 0) wc <- wc + sum(dr$f*dr$w)/qwr;
+
+      	sn <- 1/si;
+	if (sexponent == 1)  sn <- 1/sqrt(si);
+	wc <- wc*sn;
+
+	return (c(wc, (qwl+qwr)/2));
+}	
+
+##
+## Compute the Sinus wavelet coefficients and the values of the support quality  
+##
+## df : The data frame containing the column f which will be transformed (and the column w representing the weights)
+## jmin : The minimal position index with non zero wavelet coefficient
+## jmax : The maximal position index with non zero wavelet coefficient
+## si : The scale index
+## sexponent : The scale exponent for the normalization (1 or 1/2)
+## 
+lpl.R.dev.wavelets.isinuswavelet <- function(df, jmin, jmax, si, sexponent) {
+
+	# The result
+       	wc <- 0;
+	q <- 0;	
+	for (j in c(jmin:jmax)) {
+		wc <- wc + df$f[j]*df$w[j]*sin(2*pi*(j-(jmin-1))/si);
+		q <- q + df$w[j];
+	}
+	
+	if (sexponent == 1) {
+		wc <- wc/si;
+	} else {
+		wc <- wc/sqrt(si);
+	}
+	q <- q/(jmax-jmin);
+
+	return (c(wc, q));
+}	
+
+##
+## Compute the Sinus wavelet coefficients and the values of the support quality  
+##
+## df : The data frame containing the column f which will be transformed (and the column w representing the weights)
+## si : The scale index
+## sexponent : The scale exponent for the normalization (1 or 1/2)
+## 
+lpl.R.dev.wavelets.isinuswaveletatscale <- function(df, si, sexponent) {
+
+	## The length of the support
+	n <- nrow(df);
+	## The wavelet coefficients at each point of the support
+	wc <-numeric(n);
+	## The support quality at each point of the support
+	q <-numeric(n);
+
+	## Loop on the support
+	for (i in c(1:n)) {
+
+		if (si > 1) {
+			jmin <- max(1, i - si + 1); 
+			jmax <- min(n, i + si - 1); 
+			res <- lpl.R.dev.wavelets.isinuswavelet(df, jmin, jmax, si, sexponent);
+			wc[i] <- res[1];
+			q[i] <- res[2];
+		} else {
+			wc[i] <- 0;
+			q[i] <- 0;
+		}
+			
+	}
+	## Create a data frame with two columns (wc and q) and return it
+	return (data.frame(wc, q));
+}
 
 lpl.R.dev.wavelets.wavelet <- function(si, siD) {
 
@@ -174,6 +242,9 @@ lpl.R.dev.wavelets.wavelet <- function(si, siD) {
 	}
 	return (w);
 }
+
+
+
 
 
 topHatMW <- function(time, sigma) {
