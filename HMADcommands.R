@@ -6,6 +6,7 @@
 ##
 ## Define the working directory where you have installed the HMAD-master directory
 ##
+## WARNING: You have to change the next line in order to match your own instal path
 HMAD_DIRECTORY <- "C:/Users/rauzy/Desktop/HMAD-master"; 
 setwd(HMAD_DIRECTORY);
 
@@ -16,6 +17,9 @@ source("sourceR/loadSourcesAndPackages.R");
 
 ##
 ## Define the path of directory where OpenFace executable files are installed
+## WARNING: You have to change the next line in order to match your own 
+## instal path, in particular check the version number of OpenFace which 
+## is updated regularly 
 ##
 OPENFACE_DIRECTORY <- "C:/Users/rauzy/Desktop/OpenFace_2.0.5_win_x86";
 ##
