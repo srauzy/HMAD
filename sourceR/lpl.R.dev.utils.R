@@ -108,6 +108,10 @@ lpl.R.dev.utils.discretize <- function(boundaries, f) {
 ## return a column with the discrete values of the function 
 ##
 lpl.R.dev.utils.searchBinIndex <- function(boundaries, value) {
+
+	## Escape with the first bin if the value is not a number
+	if (is.na(value)) return (1);
+
 	for (i in c(1:(nrow(boundaries)-1))) {
 		if (value < boundaries$xmin[i+1]) return (i);
 	}
