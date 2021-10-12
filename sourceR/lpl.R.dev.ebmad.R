@@ -211,8 +211,8 @@ lpl.R.dev.ebmad.computeEBMAD <- function(software, projectname, df) {
 
 	if (!fileExists(FOLDER_TABLES, "ebmad.txt")) {
 		cat("Merge annotation of eyebrow raise and frown...\n");
-		lmr <- subset(ebrmad, ebrmad$class != "N" &  ebrmad$class != "X");
-		lmf <- subset(ebfmad, ebfmad$class != "N" &  ebfmad$class != "X");
+		lmr <- subset(ebrmad, class != "N" &  class != "X");
+		lmf <- subset(ebfmad, class != "N" &  class != "X");
 		ebmad <- mergeLocalMaximaByZscore(lmr, lmf);
 		cat("----------------\n");
 		cat("Add bad quality intervals (class X)...\n");
@@ -298,7 +298,7 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "X");
+	ss <- subset(data, class == "X");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "X");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -306,7 +306,7 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class != "X");
+	ss <- subset(data, class != "X");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "M");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -321,7 +321,7 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "");
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "A");
+	ss <- subset(data, class == "A");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "A");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -329,11 +329,11 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "B");
+	ss <- subset(data, class == "B");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "B");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -341,11 +341,11 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "C");
+	ss <- subset(data, class == "C");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "C");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -353,11 +353,11 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "D");
+	ss <- subset(data, class == "D");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "D");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -365,11 +365,11 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 		if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "E");
+	ss <- subset(data, class == "E");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "E");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -377,11 +377,11 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "N");
+	ss <- subset(data, class == "N");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "N");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -396,7 +396,7 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "");
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "A" | data$class == "B");
+	ss <- subset(data, class == "A" | class == "B");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "AB");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -404,11 +404,11 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "A" | data$class == "B" | data$class == "C");
+	ss <- subset(data, class == "A" | class == "B" | class == "C");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "ABC");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -416,11 +416,11 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss,ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "A" | data$class == "B" | data$class == "C" | data$class == "D");
+	ss <- subset(data, class == "A" | class == "B" | class == "C" | class == "D");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "ABCD");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -428,11 +428,11 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
-	ss <- subset(data, data$class == "A" | data$class == "B" | data$class == "C" | data$class == "D" | data$class == "E");
+	ss <- subset(data, class == "A" | class == "B" | class == "C" | class == "D" | class == "E");
 	df <- lpl.R.dev.htmldf.openHtmlTableLine(df);
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "ABCDE");
 	df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, nrow(ss));
@@ -440,7 +440,7 @@ lpl.R.dev.ebmad.createHtmlDescription <- function(data, software, projectname) {
 	if (nrow(ss) == 0) {
 		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, "NA");
 	} else {
-		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ss$ebmotion == "Raise"))/nrow(ss), 2));
+		df <- lpl.R.dev.htmldf.addCellToHtmlTableLine(df, round(nrow(subset(ss, ebmotion == "Raise"))/nrow(ss), 2));
 	}
 	df <- lpl.R.dev.htmldf.closeHtmlTableLine(df);
 
