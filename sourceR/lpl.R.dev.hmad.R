@@ -93,6 +93,49 @@ lpl.R.dev.hmad.createActionUnitTable <- function(software, projectname) {
 }
 
 ##
+## Create the eyes gaze table from the csv output file
+##
+## software : The software used for extracting the video output 
+## projectname : The project name
+##
+## return the data frame containing the eyes gaze measurements
+##
+lpl.R.dev.hmad.createEyesGazeTable <- function(software, projectname) {
+
+	projectdir <- paste("projects/", projectname, sep="");
+	## Convert the string software in uppercases
+	software <- toupper(software);
+	## The project directory depending on the software used
+	projectdir <- paste(projectdir, "/", software, sep="");
+
+	## OpenFace output
+	if (software == "OPENFACE") {
+	
+		FOLDER_TABLES <- paste(projectdir, "tables", sep="/");
+
+		if (fileExists(FOLDER_TABLES, "egdf.txt")) {
+			cat("STEP 1 previously done, load the data with eyes gaze data...\n");
+			d <- loadInternalDataFrame(FOLDER_TABLES, "egdf.txt");	
+		} else {
+			filename <- paste(projectname, "_ofo.csv", sep="");
+			csvprojectdir <- paste(projectdir, "/processed/", sep="");
+			cat(paste("LOAD CSV FILE", filename, "in directory", csvprojectdir, "...\n"));
+			csv <- lpl.R.dev.openFaceOutputAnalysis.loadOpenFaceSingleFaceOutput(csvprojectdir, filename);
+
+			d <- lpl.R.dev.openFaceOutputAnalysis.createEyesGazeTable(csv);
+
+			if (!file.exists(FOLDER_TABLES)) {
+				dir.create(FOLDER_TABLES);
+			}
+			cat("Save OpenFace action units file in tables/egdf.txt ...\n");
+			saveInternalDataFrame(d, FOLDER_TABLES, "egdf.txt");
+		}
+	}
+
+	return (d);
+}
+
+##
 ## Load and return the function model (as a data frame) which depends on the output software used.
 ##
 ## software : The software used to created the output

@@ -636,6 +636,36 @@ lpl.R.dev.openFaceOutputAnalysis.createActionUnitTable <- function(d) {
 }
 
 ##
+## Create and return a data frame with the eyes gaze measurements (3 directions for both eye and vertical and horizontal angle)
+## 
+## d : The data frame containing the pertinent information for our analysis
+##
+## return the data frame with the 9 columns (time + eyes gaze information)
+##
+lpl.R.dev.openFaceOutputAnalysis.createEyesGazeTable <- function(d) {
+
+	## Retrieve the list of column indexes of the AU
+	list_column_indexes_EG <- c("gaze_0_x", "gaze_0_y", "gaze_0_z", "gaze_1_x", "gaze_1_y", "gaze_1_z", "gaze_angle_x", "gaze_angle_y");
+	## The number of columns
+	number_of_columns <- length(list_column_indexes_EG);
+
+	framerate = lpl.R.dev.openFaceOutputAnalysis.computeFrameRate(d);
+
+	time <- round(as.numeric((d$frame-1)/framerate), 4);
+	df <- data.frame(time);
+	#j = 1;
+	#df <- data.frame(d[, list_column_indexes_AU[j]]);
+	#colnames(df)[j] <-  colnames(d)[list_column_indexes_AU[j]];
+
+	for (j in c(1:number_of_columns)) {
+		df <- data.frame(df, d[, list_column_indexes_EG[j]]);
+	}
+	colnames(df) <-  c("time", list_column_indexes_EG);
+
+	return (df);
+}
+
+##
 ## Add a column named label, with various code (N for NA data, S for too large or small face 
 ## dimension, P for positions too far away from the camera optical center, L for too large angles, and Y for frame which
 ## will be used to calibrate the head model
