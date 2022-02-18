@@ -14,6 +14,8 @@ source("sourceR/lpl.R.dev.ebmad.R");
 source("sourceR/lpl.R.dev.ebmotion.R");
 ## Load the libraries specific to smile detection
 source("sourceR/lpl.R.dev.smad.R");
+## Load the libraries specific to blink detection
+source("sourceR/lpl.R.dev.bmad.R");
 ## Load the libraries required during the analysis
 source("sourceR/lpl.R.dev.wavelets.R");
 source("sourceR/lpl.R.dev.elan.R");
