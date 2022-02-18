@@ -1,7 +1,7 @@
 ##
 ## R code for the HMAD project (Head movements Automatic Detection)
 ## author : S. Rauzy, LPL
-## date : 27/11/2017
+## date : 18/02/2022
 
 ##
 ## Define the working directory where you have installed the HMAD-master directory
@@ -102,6 +102,27 @@ EAF_ANNOTATION_FILE_NAME <- lpl.R.dev.smad.getDefaultAnnotationFileName();
 ## Create the Elan eaf annotation file name
 ##
 lpl.R.dev.smad.createElanEAFFile(TRACKING_SOFTWARE, PROJECT_NAME, MEDIA_FILE_NAME, EAF_ANNOTATION_FILE_NAME, VIDEO_MIME_TYPE);
+
+##
+## BMAD
+##
+## Blink Movements Automatic Detection
+##
+## Create the files for BMAD
+##
+bmad <- lpl.R.dev.bmad.computeBMAD(TRACKING_SOFTWARE, PROJECT_NAME, audf, 1);
+##
+## Create the Elan annotation file
+##
+## Define the parameters and file names
+##
+MEDIA_FILE_NAME <- lpl.R.dev.ebmad.getVideoFileNameWithRegex(PROJECT_NAME, "mp4");
+VIDEO_MIME_TYPE <- lpl.R.dev.ebmad.getElanMimeTypeWithRegex(PROJECT_NAME, "mp4");
+##
+## Create the Elan eaf annotation file name
+##
+EAF_ANNOTATION_FILE_NAME <- "bmad.eaf";
+lpl.R.dev.bmad.createElanEAFFile(TRACKING_SOFTWARE, PROJECT_NAME, MEDIA_FILE_NAME, EAF_ANNOTATION_FILE_NAME, VIDEO_MIME_TYPE, "bmad.txt");
 
 ##
 ## Plot the head model
