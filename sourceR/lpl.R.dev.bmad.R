@@ -5,10 +5,10 @@
 ##
 ## software : The software used to created the output
 ## projectname : The name of the project
+## df : The output data frame created by HMAD from the parameters along time
 ## audf : The output data frame created by HMAD from the OpenFace AU output
-## threshold : The smoothing scale for the low pass band filter
 ##
-lpl.R.dev.bmad.computeBMAD <- function(software, projectname, audf, threshold) {
+lpl.R.dev.bmad.computeBMAD <- function(software, projectname, df, audf) {
 
 	## Convert the string software in uppercases
 	software <- toupper(software);
@@ -28,16 +28,18 @@ lpl.R.dev.bmad.computeBMAD <- function(software, projectname, audf, threshold) {
 	}
 
 	filename <-  "bmad.txt";
+	au_45_threshold <- 1;
+	pitch_threshold <- -25;
 
 	## If the result file for automatic annotation of head nods has already been created, just load it
 	if (fileExists(FOLDER_TABLES, filename)) {
 		cat("Automatic annotations of blinks previously done, loading the file", filename, "...\n");
 		drf <- loadInternalDataFrame(FOLDER_TABLES, filename);
 	} else {
-		cat("Blink threshold =", threshold, "\n");
+		cat("Blink threshold =", au_45_threshold, "\n");
 		cat("Compute the blink intervals annotation from AU45 values...\n");
 		## Create the automatic annotations by using the AU45 variable 
-		drf <- lpl.R.dev.bmad.createBlinkAnnotations(audf, threshold);
+		drf <- lpl.R.dev.bmad.createBlinkAnnotations(df, audf, au_45_threshold, pitch_threshold);
 		
 		## Save the result in a file
 		saveInternalDataFrame(drf, FOLDER_TABLES, filename);
@@ -48,15 +50,17 @@ lpl.R.dev.bmad.computeBMAD <- function(software, projectname, audf, threshold) {
 
 ##
 ## Create the automatic blinks annotations predicted from the audf output data frame created by HMAD
+## df : The output data frame created by HMAD from the parameters along time
 ## audf : The output data frame created by HMAD from the OpenFace AU output
-## threshold : The threshold on the AU45_r value (Blink Action Unit of OpenFace, from 0 to 5).
+## au_45_threshold : The threshold on the AU45_r value (Blink Action Unit of OpenFace, from 0 to 5).
 ## Return a data frame including tmin tmax time intervals with blink annotations (column blink)
 ##
-lpl.R.dev.bmad.createBlinkAnnotations <- function(audf, threshold) {
+lpl.R.dev.bmad.createBlinkAnnotations <- function(df, audf, au_45_threshold, pitch_threshold) {
 
 	time <- audf$time;
 	binary_values <- audf$AU45_c;
 	values <- audf$AU45_r;
+	pitch_values <- df$pitch;
 
 	tmin <- 0;
 	tmax <- 0;
@@ -64,20 +68,33 @@ lpl.R.dev.bmad.createBlinkAnnotations <- function(audf, threshold) {
 	result <- NULL
 
 	blink_area <- FALSE;
+	mean_pitch <- 0;
+	n_frames <- 0;
 
 	for (i in c(1:nrow(audf))) {
 
 		##if (!blink_area & binary_values[i] == 1) {
-		if (!blink_area & values[i] > threshold) {
+		if (!blink_area & values[i] > au_45_threshold) {
 			tmin <- time[i];
 			blink_area <- TRUE;
+			mean_pitch <- 0;
+			n_frames <- 0;
+			
 		}
 
+		mean_pitch <- mean_pitch + pitch_values[i];
+		n_frames <- n_frames + 1;
+
 		##if (blink_area & binary_values[i] == 0) {
-		if (blink_area  & values[i] < threshold) {
-			tmax <- time[i-1];
+		if (blink_area  & values[i] < au_45_threshold) {
+			tmax <- time[i];
 			blink_area <- FALSE;
-			result <- rbind(result, c(tmin, tmax, "blink"));
+			mean_pitch <- mean_pitch/n_frames;
+			if (mean_pitch < pitch_threshold) {
+				result <- rbind(result, c(tmin, tmax, "P"));
+			} else {
+				result <- rbind(result, c(tmin, tmax, "B"));
+			}
 		}	
 	}
 
@@ -102,11 +119,28 @@ lpl.R.dev.bmad.getDefaultAnnotationFileName<- function() {
 ## software : The software used to created the output "OPENFACE" or "INTRAFACE"
 ## projectname : The name of the project in the directory "projects"
 ## mediafilename : The media file name in the directory "projects/projectname"
+## videomimetype : The video mime type, "video/*" for avi, "video/mp4" for mp4, see ELAN instruction guideline
+##
+lpl.R.dev.bmad.createElanEAFFile<- function(software, projectname, mediafilename, videomimetype) {
+
+	bdatafile <- "bmad.txt";
+	eaffilename <- "bmad.eaf";
+
+	return (lpl.R.dev.bmad.createElanEAFFileWithName(software, projectname, mediafilename, eaffilename, videomimetype, bdatafile));
+}
+
+##
+## Create the ELAN eaf output file format for editing the automatic annotation of theblinks (in directory
+## in projects/projectname/software/blink/result)
+##
+## software : The software used to created the output "OPENFACE" or "INTRAFACE"
+## projectname : The name of the project in the directory "projects"
+## mediafilename : The media file name in the directory "projects/projectname"
 ## eaffilename : The name of the eaf output file name in projects/projectname/software/blink/result
 ## videomimetype : The video mime type, "video/*" for avi, "video/mp4" for mp4, see ELAN instruction guideline
-## merged : Put to TRUE to merge annotation 
+## bdatafile : The name of the  file name in projects/projectname/software/blink/tables containing the table of blink annotations
 ##
-lpl.R.dev.bmad.createElanEAFFile<- function(software, projectname, mediafilename, eaffilename, videomimetype, bdatafile) {
+lpl.R.dev.bmad.createElanEAFFileWithName <- function(software, projectname, mediafilename, eaffilename, videomimetype, bdatafile) {
 
 	## Define the folders
 	projectdir <- paste("projects/", projectname, sep="");
