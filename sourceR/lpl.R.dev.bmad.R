@@ -73,27 +73,28 @@ lpl.R.dev.bmad.createBlinkAnnotations <- function(df, audf, au_45_threshold, pit
 
 	for (i in c(1:nrow(audf))) {
 
-		##if (!blink_area & binary_values[i] == 1) {
-		if (!blink_area & values[i] > au_45_threshold) {
-			tmin <- time[i];
-			blink_area <- TRUE;
-			mean_pitch <- 0;
-			n_frames <- 0;
-			
-		}
+		if (!is.na(values[i])) {
+			##if (!blink_area & binary_values[i] == 1) {
+			if (!blink_area & values[i] > au_45_threshold) {
+				tmin <- time[i];
+				blink_area <- TRUE;
+				mean_pitch <- 0;
+				n_frames <- 0;		
+			}
 
-		mean_pitch <- mean_pitch + pitch_values[i];
-		n_frames <- n_frames + 1;
+			mean_pitch <- mean_pitch + pitch_values[i];
+			n_frames <- n_frames + 1;
 
-		##if (blink_area & binary_values[i] == 0) {
-		if (blink_area  & values[i] < au_45_threshold) {
-			tmax <- time[i];
-			blink_area <- FALSE;
-			mean_pitch <- mean_pitch/n_frames;
-			if (mean_pitch < pitch_threshold) {
-				result <- rbind(result, c(tmin, tmax, "P"));
-			} else {
-				result <- rbind(result, c(tmin, tmax, "B"));
+			##if (blink_area & binary_values[i] == 0) {
+			if (blink_area  & values[i] < au_45_threshold) {
+				tmax <- time[i];
+				blink_area <- FALSE;
+				mean_pitch <- mean_pitch/n_frames;
+				if (mean_pitch < pitch_threshold) {
+					result <- rbind(result, c(tmin, tmax, "P"));
+				} else {
+					result <- rbind(result, c(tmin, tmax, "B"));
+				}
 			}
 		}	
 	}
