@@ -110,7 +110,7 @@ lpl.R.dev.smad.createElanEAFFile(TRACKING_SOFTWARE, PROJECT_NAME, MEDIA_FILE_NAM
 ##
 ## Create the files for BMAD
 ##
-bmad <- lpl.R.dev.bmad.computeBMAD(TRACKING_SOFTWARE, PROJECT_NAME, audf, 1);
+bmad <- lpl.R.dev.bmad.computeBMAD(TRACKING_SOFTWARE, PROJECT_NAME, df, audf);
 ##
 ## Create the Elan annotation file
 ##
@@ -121,8 +121,7 @@ VIDEO_MIME_TYPE <- lpl.R.dev.ebmad.getElanMimeTypeWithRegex(PROJECT_NAME, "mp4")
 ##
 ## Create the Elan eaf annotation file name
 ##
-EAF_ANNOTATION_FILE_NAME <- "bmad.eaf";
-lpl.R.dev.bmad.createElanEAFFile(TRACKING_SOFTWARE, PROJECT_NAME, MEDIA_FILE_NAME, EAF_ANNOTATION_FILE_NAME, VIDEO_MIME_TYPE, "bmad.txt");
+lpl.R.dev.bmad.createElanEAFFile(TRACKING_SOFTWARE, PROJECT_NAME, MEDIA_FILE_NAME, VIDEO_MIME_TYPE);
 
 ##
 ## Plot the head model
