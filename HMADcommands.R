@@ -36,6 +36,7 @@ setwd(HMAD_DIRECTORY);
 ## Load the sources and packages
 ##
 source("sourceR/loadSourcesAndPackages.R");
+source("sourceObjectR/loadObjectSourcesAndPackages.R");
 
 ##
 ## Define the path of directory where OpenFace executable files are installed
@@ -126,24 +127,22 @@ EAF_ANNOTATION_FILE_NAME <- lpl.R.dev.smad.getDefaultAnnotationFileName();
 lpl.R.dev.smad.createElanEAFFile(TRACKING_SOFTWARE, PROJECT_NAME, MEDIA_FILE_NAME, EAF_ANNOTATION_FILE_NAME, VIDEO_MIME_TYPE);
 
 ##
-## BMAD
+## BAGMAD
 ##
-## Blink Movements Automatic Detection
+## Blink And Gaze Movements Automatic Detection
 ##
-## Create the files for BMAD
-##
-bmad <- lpl.R.dev.bmad.computeBMAD(TRACKING_SOFTWARE, PROJECT_NAME, df, audf);
-##
-## Create the Elan annotation file
-##
-## Define the parameters and file names
-##
-MEDIA_FILE_NAME <- lpl.R.dev.ebmad.getVideoFileNameWithRegex(PROJECT_NAME, "mp4");
-VIDEO_MIME_TYPE <- lpl.R.dev.ebmad.getElanMimeTypeWithRegex(PROJECT_NAME, "mp4");
-##
-## Create the Elan eaf annotation file name
-##
-lpl.R.dev.bmad.createElanEAFFile(TRACKING_SOFTWARE, PROJECT_NAME, MEDIA_FILE_NAME, VIDEO_MIME_TYPE);
+
+## Print comments in the console
+verbose <- TRUE;
+## Create the HMAD input from the OpenFaceOutput if it not already done
+hmad_object <- lpl.R.dev.hmad.hmadObject.createDefaultHmadObject(HMAD_DIRECTORY, PROJECT_NAME, verbose);
+## Define the project directory where the HMAD input files are stored
+PROJECT_DIRECTORY <- paste(HMAD_DIRECTORY, "projects", PROJECT_NAME, sep="/");
+## The video file and its extension for creating a link for Elan annotation file
+extension <- "mp4";
+media_file <- lpl.R.dev.hmad.hmadObject.getVideoFile(PROJECT_DIRECTORY, extension);
+## Create the blink and gaze automatic annotation
+bagmad_object <- lpl.R.dev.hmad.bagmadObject.createDefaultBagmadObject(HMAD_DIRECTORY, PROJECT_NAME, hmad_object, media_file, verbose); 
 
 ##
 ## Plot the head model
