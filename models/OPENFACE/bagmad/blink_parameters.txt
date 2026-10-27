@@ -1,0 +1,2 @@
+scale_min	scale_max	scale_step	reference_scale	signal_to_noise_ratio	interpolation_parameter
+0.08	0.4	0.08	0.4	2	1
