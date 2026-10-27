@@ -1,7 +1,7 @@
 ## `HMAD` project
 ### Head Movements (and internal facial movements) Automatic Detection
 **Author:** Stéphane Rauzy, Aix Marseille University & CNRS, Laboratoire Parole et Language, Aix-en-Provence, France
-<br> **Scientific contributors:** Mary Amoyal (LPL, AMU), Aurélie Goujon (LPL, AMU), Stéphane Rauzy (LPL, CNRS & AMU)
+<br> **Scientific contributors:** Mary Amoyal (LPL, AMU), Auriane Boudin (LPL, AMU), Aurélie Goujon (LPL, AMU), Stéphane Rauzy (LPL, CNRS & AMU)
 
 The `HMAD` project aims at providing R script and source codes allowing automatic detection of internal facial movements and head movements from a video record. 
 <br> Automatic detection of eyebrows raising and frowning (`EBMAD` script), smiling activity on the 5 levels Smiling Intensity Scale (`SMAD` script) or eye blinks detection (`BMAD` script) are proposed.   
