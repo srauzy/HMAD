@@ -1,25 +1,3 @@
-# -------------------------------------------------------------------------
-# Copyright (C) 2018-2023  Stéphane Rauzy
-# Laboratoire Parole et Langage, Aix-en-Provence, France
-#
-# Use of this software is governed by the GNU Public License, version 3.
-#
-# HMAD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# HMAD is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with HMAD If not, see <http://www.gnu.org/licenses/>.
-#
-# This banner notice must not be removed.
-# -------------------------------------------------------------------------
-
 ## R code for computing head model and residuals motions, part of the HMAD project
 ## author : S. Rauzy, LPL
 ## date : 27/02/2017
@@ -757,6 +735,31 @@ lpl.R.dev.hmad.createOpenFaceOutput <- function(projectname, openfacedirectory) 
 		        ## Back to the HMAD working directory  	
 			setwd(hmaddirectory);
 		}
+	}
+}
+
+lpl.R.dev.hmad.createOpenFaceOutputFromVideoFile <- function(projectname, filename, openfacedirectory) {
+
+	projectdir <- paste("projects/", projectname, sep="");
+	
+	listfiles <- lpl.R.dev.hmad.getListOfFiles(projectname);
+
+	## Store the HMAD working directory 
+	hmaddirectory <- getwd();
+
+	videofile <- paste(hmaddirectory, "/", projectdir, "/", filename, sep="");
+	if (file.exists(videofile)) {
+		ofname =  paste(hmaddirectory, "/", projectdir, "/OPENFACE/processed/", projectname, "_ofo.csv", sep="");
+	
+		## Change the working directory to OpenFace directory executable
+		setwd(openfacedirectory);
+		inputname = paste("FeatureExtraction.exe", "-f", videofile, "-of", ofname);
+		inputname = paste(inputname, "-verbose");
+		system(command = "cmd.exe", input = inputname);
+	        ## Back to the HMAD working directory  	
+		setwd(hmaddirectory);
+	} else {
+		warning(paste("WARNING : The video", videofile, "does not exist", sep=""));
 	}
 }
 
