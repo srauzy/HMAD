@@ -1,25 +1,3 @@
-# -------------------------------------------------------------------------
-# Copyright (C) 2018-2023  Stéphane Rauzy
-# Laboratoire Parole et Langage, Aix-en-Provence, France
-#
-# Use of this software is governed by the GNU Public License, version 3.
-#
-# HMAD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# HMAD is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with HMAD If not, see <http://www.gnu.org/licenses/>.
-#
-# This banner notice must not be removed.
-# -------------------------------------------------------------------------
-
 ## R code for plotting various graphics related to head motion
 ## author : S. Rauzy, LPL
 ## date : 27/02/2017
@@ -107,7 +85,7 @@ lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlagDF <- function(directory, 
 	qp <- qp + scale_x_continuous(limits = c(xmin - xlength/10, xmax + xlength/10));
 	yminshift <- ylength/10;
 	if (angleflag) {
-		textangle <- paste("pitch=", pitch, "°, roll=", roll, "°, yaw=", yaw, "°", sep="");
+		textangle <- paste("pitch=", pitch,  ", roll=", roll, " , yaw=", yaw, " ", sep="");
         	qp <- qp +  annotate("text", label = textangle, x = xmin - xlength/10, y = ymin - 1.8*ylength/10, hjust = 0);
 		yminshift <- 2*ylength/10;
 	}	
