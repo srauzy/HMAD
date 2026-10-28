@@ -1233,6 +1233,28 @@ lpl.R.dev.smad.createElanEAFFile<- function(software, projectname, mediafilename
 	}
 }
 
+lpl.R.dev.smad.createElanEAFFileFromFilePath<- function(software, projectname, media_file_path, mediafilename, eaffilename, videomimetype) {
+
+	## Define the folders
+	projectdir <- paste("projects/", projectname, sep="");
+
+	## Convert the string software in uppercases
+	software <- toupper(software);
+	## The project directory depending on the software used
+	projectdir <- paste(projectdir, "/", software, sep="");
+
+	smaddir <- paste(projectdir, "/", "smile14", sep="");
+	
+	## The folder for the tables
+	FOLDER_TABLES <- paste(smaddir, "tables", sep="/");
+
+	if (!fileExists(FOLDER_TABLES, "smad.txt")) {
+		cat("Please first run the lpl.R.dev.smad.computeSMAD routine...");
+	} else {
+		smad <- loadInternalDataFrame(FOLDER_TABLES, "smad.txt");
+		lpl.R.dev.smad.cawriteElanEAFFileFromFilePath(smad, software, projectname, media_file_path, mediafilename, eaffilename, videomimetype); 
+	}
+}
 ##
 ## Create the ELAN eaf output file format for editing the automatic annotation of the smile action (in directory
 ## in projects/projectname/software/result)
@@ -1300,6 +1322,58 @@ lpl.R.dev.smad.cawriteElanEAFFile <- function(smad, software, projectname, media
 	cat(paste("You can now open the annotation file", paste(FOLDER_RESULT, eaffilename, sep="/"), "with the ELAN Software.\n"));
 }
 
+lpl.R.dev.smad.cawriteElanEAFFileFromFilePath <- function(smad, software, projectname, media_file_path, mediafilename, eaffilename, videomimetype) {
+
+	projectdir <- paste("projects/", projectname, sep="");
+	videodir <- projectdir;
+
+	## Convert the string software in uppercases
+	software <- toupper(software);
+	## The project directory depending on the software used
+	projectdir <- paste(projectdir, "/", software, sep="");
+
+	smaddir <- paste(projectdir, "/", "smile14", sep="");
+
+	FOLDER_RESULT <- paste(smaddir, "result", sep="/"); 
+	if (!file.exists(FOLDER_RESULT)) {
+		dir.create(FOLDER_RESULT);
+	}
+	WORKING_DIRECTORY <- getwd(); 
+
+	MEDIA_URL <- "file://"; 
+	MEDIA_URL <- paste(MEDIA_URL, media_file_path, sep="/");
+
+	RELATIVE_MEDIA_URL <- "..";
+	RELATIVE_MEDIA_URL <- paste(RELATIVE_MEDIA_URL, mediafilename, sep="/");
+
+	cat(paste("Creating the Elan eaf annotation file in", FOLDER_RESULT, "...\n"));
+	df <- lpl.R.dev.smad.createElanEAFTable(smad, MEDIA_URL, RELATIVE_MEDIA_URL, videomimetype);
+
+	eaffile <- paste(FOLDER_RESULT, eaffilename, sep="/");
+
+	write.table(df, eaffile, sep="\t", quote = FALSE, row.names=FALSE, col.names=FALSE, fileEncoding="UTF-8");
+
+	cat(paste("You can now open the annotation file", paste(FOLDER_RESULT, eaffilename, sep="/"), "with the ELAN Software.\n"));
+}
+
+lpl.R.dev.smad.getElanMimeType<- function(video_file_path) {
+
+	vfn <- basename(video_file_path)
+	
+	if (endsWith(vfn, ".mp4")) {
+		return ("video/mp4");
+	} else if (endsWith(vfn, ".avi")) {
+	       return ("video/*");
+	} else if (endsWith(vfn, ".mov")) {
+	       return ("video/quicktime");
+	} else if (endsWith(vfn, ".mpg") || endsWith(vfn, ".mpeg")) {
+		return ("video/mpeg");
+	}
+
+
+	cat("Mime Type not found! Please consult the Elan instruction guideline (https://www.mpi.nl/corpus/html/lamus/apa.html) and instantiate manually the VIDEO_MIME_TYPE R variable...");
+}	
+	
 ##
 ## Create a one column data frame mimicking the xml ouput of the ELAN eaf format 
 ##

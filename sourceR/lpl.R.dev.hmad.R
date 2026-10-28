@@ -750,17 +750,14 @@ lpl.R.dev.hmad.createOpenFaceOutputFromVideoFile <- function(projectname, filena
 	videofile <- paste(hmaddirectory, "/", projectdir, "/", filename, sep="");
 	if (file.exists(videofile)) {
 		ofname =  paste(hmaddirectory, "/", projectdir, "/OPENFACE/processed/", projectname, "_ofo.csv", sep="");
-		if (file.exists(ofname)) {
-			warning(paste("WARNING : It looks like the video file has been already processed!\nIf you wish to re-process the video, please delete manually the directory ", paste(hmaddirectory, "/", projectdir, "/OPENFACE/processed", sep=""), " and launch the command createOpenFaceOutput(PROJECT_NAME, OPENFACE_DIRECTORY) again!\n"));
-		} else {	
-			## Change the working directory to OpenFace directory executable
-			setwd(openfacedirectory);
-			inputname = paste("FeatureExtraction.exe", "-f", videofile, "-of", ofname);
-			inputname = paste(inputname, "-verbose");
-			system(command = "cmd.exe", input = inputname);
-	        	## Back to the HMAD working directory  	
-			setwd(hmaddirectory);
-		}
+			
+		## Change the working directory to OpenFace directory executable
+		setwd(openfacedirectory);
+		inputname = paste("FeatureExtraction.exe", "-f", videofile, "-of", ofname);
+		inputname = paste(inputname, "-verbose");
+		system(command = "cmd.exe", input = inputname);
+	       	## Back to the HMAD working directory  	
+		setwd(hmaddirectory);
 	} else {
 		warning(paste("WARNING : The video", videofile, "does not exist", sep=""));
 	}
@@ -778,14 +775,17 @@ lpl.R.dev.hmad.createOpenFaceOutputFromVideoFilePath <- function(projectname, vi
 	videofile <- videofilepath;
 	if (file.exists(videofile)) {
 		ofname =  paste(hmaddirectory, "/", projectdir, "/OPENFACE/processed/", projectname, "_ofo.csv", sep="");
-	
-		## Change the working directory to OpenFace directory executable
-		setwd(openfacedirectory);
-		inputname = paste("FeatureExtraction.exe", "-f", videofile, "-of", ofname);
-		inputname = paste(inputname, "-verbose");
-		system(command = "cmd.exe", input = inputname);
-	        ## Back to the HMAD working directory  	
-		setwd(hmaddirectory);
+		if (file.exists(ofname)) {
+			warning(paste("WARNING : It looks like the video file has been already processed!\nIf you wish to re-process the video, please delete manually the directory ", paste(hmaddirectory, "/", projectdir, "/OPENFACE/processed", sep=""), " and launch the command createOpenFaceOutput(PROJECT_NAME, OPENFACE_DIRECTORY) again!\n"));
+		} else {	
+			## Change the working directory to OpenFace directory executable
+			setwd(openfacedirectory);
+			inputname = paste("FeatureExtraction.exe", "-f", videofile, "-of", ofname);
+			inputname = paste(inputname, "-verbose");
+			system(command = "cmd.exe", input = inputname);
+	        	## Back to the HMAD working directory  	
+			setwd(hmaddirectory);
+		}
 	} else {
 		warning(paste("WARNING : The video", videofile, "does not exist", sep=""));
 	}
