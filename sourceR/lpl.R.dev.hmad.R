@@ -763,6 +763,31 @@ lpl.R.dev.hmad.createOpenFaceOutputFromVideoFile <- function(projectname, filena
 	}
 }
 
+lpl.R.dev.hmad.createOpenFaceOutputFromVideoFilePath <- function(projectname, videofilepath, openfacedirectory) {
+
+	projectdir <- paste("projects/", projectname, sep="");
+	
+	listfiles <- lpl.R.dev.hmad.getListOfFiles(projectname);
+
+	## Store the HMAD working directory 
+	hmaddirectory <- getwd();
+
+	videofile <- videofilepath;
+	if (file.exists(videofile)) {
+		ofname =  paste(hmaddirectory, "/", projectdir, "/OPENFACE/processed/", projectname, "_ofo.csv", sep="");
+	
+		## Change the working directory to OpenFace directory executable
+		setwd(openfacedirectory);
+		inputname = paste("FeatureExtraction.exe", "-f", videofile, "-of", ofname);
+		inputname = paste(inputname, "-verbose");
+		system(command = "cmd.exe", input = inputname);
+	        ## Back to the HMAD working directory  	
+		setwd(hmaddirectory);
+	} else {
+		warning(paste("WARNING : The video", videofile, "does not exist", sep=""));
+	}
+}
+
 ##
 ## Create the cvs output file of the OpenFace software (old version)
 ##
