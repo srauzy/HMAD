@@ -85,7 +85,7 @@ lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlagDF <- function(directory, 
 	qp <- qp + scale_x_continuous(limits = c(xmin - xlength/10, xmax + xlength/10));
 	yminshift <- ylength/10;
 	if (angleflag) {
-		textangle <- paste("pitch=", pitch, "°, roll=", roll, "°, yaw=", yaw, "°", sep="");
+		textangle <- paste("pitch=", pitch,  ", roll=", roll, " , yaw=", yaw, " ", sep="");
         	qp <- qp +  annotate("text", label = textangle, x = xmin - xlength/10, y = ymin - 1.8*ylength/10, hjust = 0);
 		yminshift <- 2*ylength/10;
 	}	
