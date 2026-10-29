@@ -47,56 +47,58 @@ lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlag <- function(projectname, 
 ##
 lpl.R.dev.hmplot.plotOpenFaceHeadModelWithAngleAndFlagDF <- function(directory, filename, pitch, roll, yaw, angleflag) {
 
-	dhmt <- loadInternalDataFrame(directory, filename);
-	index <- numeric(nrow(dhmt));
-	if (nrow(dhmt) == 67) {
-		jc <- 1;
-		 for (j in c(1:(length(index)+1))) {
-			if (j != 28) {
-				index[jc] <- j;
-				jc <- jc + 1;
-			}
-		}
-		df <- data.frame(dhmt, index);
+    dhmt <- loadInternalDataFrame(directory, filename);
+    index <- numeric(nrow(dhmt));
+    if (nrow(dhmt) == 67) {
+        jc <- 1;
+         for (j in c(1:(length(index)+1))) {
+            if (j != 28) {
+                index[jc] <- j;
+                jc <- jc + 1;
+            }
+        }
+        df <- data.frame(dhmt, index);
 
-		dff <- data.frame("P28", 0, 0, 0, 0, 0, 0, 28);
-		names(dff) <- c("point", "X", "seX", "Y", "seY", "Z", "seZ", "index");
-		rownames(dff) <- NULL;
-		df <- rbind(df, dff);
-	} else {
-		index <- numeric(nrow(dhmt));
-		for (j in c(1:nrow(dhmt))) {
-			index[j] <- j;
-		}
-		df <- data.frame(dhmt, index);
-	}
-	
-	dfr <- rotate(df, pitch, roll, yaw);
+        dff <- data.frame("P28", 0, 0, 0, 0, 0, 0, 28);
+        names(dff) <- c("point", "X", "seX", "Y", "seY", "Z", "seZ", "index");
+        rownames(dff) <- NULL;
+        df <- rbind(df, dff);
+    } else {
+        index <- numeric(nrow(dhmt));
+        for (j in c(1:nrow(dhmt))) {
+            index[j] <- j;
+        }
+        df <- data.frame(dhmt, index);
+    }
+    
+    dfr <- rotate(df, pitch, roll, yaw);
 
-	xmin <- min(dfr$X);
-	xmax <- max(dfr$X);	
-	ymin <- min(dfr$Y);
-	ymax <- max(dfr$Y);
-	xlength <- xmax-xmin;
-	ylength <- ymax-ymin;
+    xmin <- min(dfr$X);
+    xmax <- max(dfr$X);    
+    ymin <- min(dfr$Y);
+    ymax <- max(dfr$Y);
+    xlength <- xmax-xmin;
+    ylength <- ymax-ymin;
 
-	qp <- qplot(data=dfr, x=X, y=Y, label=index) + geom_point(size=I(5), shape=I(19), colour="blue");
-	qp <- qp + geom_text(size=I(3), vjust = I(0), nudge_y = I(-1.2), colour="white");
-	qp <- qp + scale_x_continuous(limits = c(xmin - xlength/10, xmax + xlength/10));
-	yminshift <- ylength/10;
-	if (angleflag) {
-		textangle <- paste("pitch=", pitch,  ", roll=", roll, " , yaw=", yaw, " ", sep="");
-        	qp <- qp +  annotate("text", label = textangle, x = xmin - xlength/10, y = ymin - 1.8*ylength/10, hjust = 0);
-		yminshift <- 2*ylength/10;
-	}	
-       	qp <- qp + scale_y_continuous(limits = c(ymin - yminshift, ymax + ylength/10)) + coord_fixed(ratio = 1, expand = TRUE);
-		##qp <- qp + ggtitle("Head model");	
-		##qp <- qp + ggtitle(paste(projectname, "head model"));
-		qp <- qp + ylab("Y (in millimeters)");
-		qp <- qp + xlab("X (in millimeters)");
-		qp <- qp + theme(text = element_text(size=8));
+    # MODERNIZED: Replaced qplot with ggplot + aes
+    qp <- ggplot(data = dfr, aes(x = X, y = Y, label = index)) + 
+          geom_point(size = 5, shape = 19, colour = "blue");
+          
+    qp <- qp + geom_text(size = 3, vjust = 0, nudge_y = -1.2, colour = "white");
+    qp <- qp + scale_x_continuous(limits = c(xmin - xlength/10, xmax + xlength/10));
+    yminshift <- ylength/10;
+    if (angleflag) {
+        textangle <- paste("pitch=", pitch,  ", roll=", roll, " , yaw=", yaw, " ", sep="");
+            qp <- qp +  annotate("text", label = textangle, x = xmin - xlength/10, y = ymin - 1.8*ylength/10, hjust = 0);
+        yminshift <- 2*ylength/10;
+    }    
+            
+    qp <- qp + scale_y_continuous(limits = c(ymin - yminshift, ymax + ylength/10)) + coord_fixed(ratio = 1, expand = TRUE);
+    qp <- qp + ylab("Y (in millimeters)");
+    qp <- qp + xlab("X (in millimeters)");
+    qp <- qp + theme(text = element_text(size = 8));
 
-	return (qp);
+    return (qp);
 }
 
 ##
