@@ -154,8 +154,6 @@ if (COMPUTE_FLAG == "TRUE") {
 
 ##
 ## Plot the head model
-library(ggplot2)
-source("sourceR/lpl.R.dev.hmplot.R")
-lpl.R.dev.hmplot.plotOpenFaceHeadModel(PROJECT_NAME);
-
-
+#library(ggplot2)
+#source("sourceR/lpl.R.dev.hmplot.R")
+#lpl.R.dev.hmplot.plotOpenFaceHeadModel(PROJECT_NAME);
